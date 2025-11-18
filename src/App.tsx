@@ -1,11 +1,13 @@
 import './App.css'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
+import Welcome from './components/blocks/welcome.tsx'
+
+
 
 export default function App() {
   return (
     <header>
-      <h1>Hello...</h1>
-      <h1>Welcome to ReYapp</h1>
+      <Welcome />
       <SignedOut>
         <SignInButton />
       </SignedOut>
