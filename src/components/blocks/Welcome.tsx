@@ -9,7 +9,7 @@ const Welcome: React.FC = () => {
 
     const interval = setInterval(() => {
       setVisibleLetters(prev => prev + 1);
-    }, 200); 
+    }, 75); 
 
     return () => clearInterval(interval);
   }, [visibleLetters, fullMessage.length]);
