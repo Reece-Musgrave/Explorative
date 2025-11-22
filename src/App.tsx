@@ -1,6 +1,6 @@
 import './App.css'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
-import Welcome from './components/blocks/welcome.tsx'
+import Welcome from './components/blocks/Welcome.tsx'
 
 
 
@@ -9,7 +9,7 @@ export default function App() {
     <header>
       <Welcome />
       <SignedOut>
-        <SignInButton />
+        <SignInButton forceRedirectUrl={'/landing'} signUpForceRedirectUrl={'/landing'} />
       </SignedOut>
       <SignedIn>
         <UserButton />

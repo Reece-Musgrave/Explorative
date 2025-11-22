@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import About from './components/pages/About.tsx'
 import Navbar from './components/pages/Navbar.tsx'
+import Landing from './components/pages/Landing.tsx'
 import { ClerkProvider } from '@clerk/react-router'
 import { BrowserRouter, Routes, Route } from 'react-router'
 
@@ -19,8 +20,9 @@ createRoot(document.getElementById('root')!).render(
       <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
         <Routes>
           <Route path="/" element={<App />} />
-          <Route path="./components/pages/About.tsx" element={<About />} />
-          <Route path="./components/pages/Navbar.tsx" element={<Navbar />} /> 
+          <Route path="/about" element={<About />} />
+          <Route path="/navbar" element={<Navbar />} /> 
+          <Route path="/landing" element={<Landing />} />
         </Routes>
       </ClerkProvider>
     </BrowserRouter>

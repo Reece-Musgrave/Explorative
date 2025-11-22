@@ -1,7 +1,9 @@
+import { UserButton } from '@clerk/clerk-react'
+
 export default function App() {
     return (
-      <header>
-        <h1>Navbar</h1>
-      </header>
+      <div>
+        <UserButton />
+      </div>
     );
   };
