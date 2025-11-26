@@ -15,7 +15,6 @@ Methods include:
 import sqlite3
 import datetime
 
-
 class Database: 
     def __init__(self, db_path):
         self.conn = sqlite3.connect(db_path)
@@ -80,14 +79,14 @@ class Database:
         self.conn.commit()
 
 
-    def InsertSeason(self, showID, seasonNumber):
+    def InsertSeason(self, showID, seasonNumber, numberEpisodes):
         curr = self.conn.cursor()
         curr.execute(
             """
-            INSERT INTO seasons (show_id, season_number)
-            VALUES (?, ?)
+            INSERT INTO seasons (show_id, season_number, number_episodes)
+            VALUES (?, ?, ?)
             """,
-            (showID, seasonNumber)
+            (showID, seasonNumber, numberEpisodes)
         )
         self.conn.commit()
 
