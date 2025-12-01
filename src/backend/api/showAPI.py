@@ -16,17 +16,16 @@ class ShowAPI:
     base_url = "https://api.tvmaze.com"
 
     def retrieveShow(self, showID):
+         showID = showID.replace(" ", "+")
          response = requests.get(f"{self.base_url}/singlesearch/shows?q={showID}")
          if response.status_code == 404:
             print("Show not found.")
             return None
 
          data = response.json()  
-         return {
-            "id": data["id"],
-            "name": data["name"],
-            "image": data["image"]["medium"] if data.get("image") else None
-         }
+
+         return data["id"], data["name"], data["image"]["medium"] if data.get("image") else None
+         
        
     def retrieveSeasons(self, showID):
         response = requests.get(f"{self.base_url}/shows/{showID}/seasons")
@@ -39,6 +38,7 @@ class ShowAPI:
         return len(data)
     
     def retrieveNumberOfEpisodes(self, showID, seasonNumber):
+        showID = showID.replace(" ", "+")
         response = requests.get(f"{self.base_url}/shows/{showID}/seasons")
         if response.status_code == 404:
             print("Could not find season data")
@@ -48,6 +48,7 @@ class ShowAPI:
         return data[seasonNumber]["episodeOrder"]
 
     def retrieveEpisode(self, episodeID, showID, seasonID): 
+        showID = showID.replace(" ", "+")
         response = requests.get(f"{self.base_url}/shows/{showID}/episodebynumber?season=:{seasonID}&number=:{episodeID}")
         if response.status_code == 404:
             print("Episode not found")

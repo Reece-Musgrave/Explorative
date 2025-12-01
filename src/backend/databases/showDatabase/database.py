@@ -23,7 +23,7 @@ class Database:
     def RetrieveShow(self, showName):
         curr = self.conn.cursor() 
         curr.execute(
-            "SELECT name, poster_url FROM shows WHERE name = ?",
+            "SELECT name, tvmaze_id, poster_url FROM shows WHERE name = ? COLLATE NOCASE",
             (showName,)
         )
         return curr.fetchone()
