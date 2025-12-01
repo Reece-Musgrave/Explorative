@@ -109,10 +109,18 @@ class Database:
         )
         return curr.fetchall()
 
-    def RetrieveEpisodes(self, showID, seasonID): 
+    def RetrieveEpisodesBySeason(self, showName, seasonNumber):
         curr = self.conn.cursor()
         curr.execute(
-            "SELECT id, episode_number, title, air_date FROM episodes WHERE season_id = ?",
-            (seasonID,)
+            """
+            SELECT e.id, e.episode_number, e.title, e.air_date
+            FROM episodes e
+            JOIN seasons s ON e.season_id = s.id
+            JOIN shows sh ON s.show_id = sh.id
+            WHERE sh.name = ? AND s.season_number = ?
+            ORDER BY e.episode_number
+            """,
+            (showName, seasonNumber)
         )
         return curr.fetchall()
+
