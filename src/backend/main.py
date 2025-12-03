@@ -46,19 +46,23 @@ class EpisodeOutput(BaseModel):
 
 
 
-#Wrapping of python methods using Python FastAPI
 
-
-#Double check foreign key linkage so episode -> season -> show is viable 
-#wipe table, then use code below to fully populate: The Last Of Us, The Mandalorian, and Stranger Things
-#And then convert API methods to be put/get correctly
-#Test all API endpoints 
-#Create API endpoints for showapi python methods 
-#Test all API endpoints 
+#Test all API endpoints / Double check inputs/outputs are correct 
 #Do code restructuring + test everything still runs 
 #Have search bar search database in real time.
+#Introduce routes for the backend api
+#write unit tests
 
 
+#showAPI classes
+
+class ShowOutput(BaseModel):
+    id: int
+    name: str
+    poster_url: str
+
+
+#Wrapping of database python methods using Python FastAPI
 app = FastAPI()
 maze = ShowAPI()
 databaseCopy = Database('./src/backend/databases/showDatabase/tvshows.db')
@@ -84,29 +88,29 @@ async def retrieveEpisodeAirdate(data: retrieveEpisodeTimestampInput):
 async def refreshShow(showName):
     output = databaseCopy.RefeshShow(showName)
 
-@app.get("/database/insert-show")
+@app.put("/database/insert-show")
 async def insertShow(data: retrieveShowOutput):
     output = databaseCopy.InsertShow(data.name, data.mazeID, data.url)
 
-@app.get("/database/insert-season")
+@app.put("/database/insert-season")
 async def insertSeason(data: insertSeasonInput):
     output = databaseCopy.InsertSeason(data.showID, data.seasonNumber, data.episodeNumber)
 
-@app.get("database/insert-episode")
+@app.put("/database/insert-episode")
 async def insertEpisode(data: insertEpisodeInput):
     output = databaseCopy.InsertEpisode(data.seasonID, data.episodeNumber, data.title, data.airDate)
 
-@app.get("database/retrieve-season/{showID}")
+@app.get("/database/retrieve-season/{showID}")
 async def retrieveSeason(showID):
     output = databaseCopy.RetrieveSeasons(showID)
     data = {
-        'id': output["id"],
-        'season_number': output["season_number"]
+        'id': output[0],
+        'season_number': output[1]
     }
     data = retrieveSeasonOutput(**data)
     return data
 
-@app.get("database/retrieve-episode/{showName}/{seasonNumber}")
+@app.get("/database/retrieve-episode/{showName}/{seasonNumber}")
 async def retrieveEpisodes(showName, seasonNumber):
     output = databaseCopy.RetrieveEpisodesBySeason(showName, seasonNumber)
     return [
@@ -119,6 +123,37 @@ async def retrieveEpisodes(showName, seasonNumber):
         for r in output
     ]
 
-#TO TEST PROPERLY WILL REQUIRE POPULATING THE DATABASE WITH A FULL TV SHOW DATA 
-#May need to add the correct REST API TYPE i.e. PUT instead of GET, + general refactor once all green
-#TEST ALL API ENDPOINTS BEFORE PROGRESSING WITH ADDING THE SHOW ENDPOINTS
+
+#Wrapping of showAPI python methods using Python FastAPI
+
+@app.get("/showapi/retrieve-show/{showName}")
+async def retrieveShowData(showName):
+    output = maze.retrieveShow(showName)
+    show_id, name, poster = output
+
+    return ShowOutput(id=show_id, name=name, poster_url=poster)
+
+@app.get("/showapi/retrieve-seasons/{showID}")
+async def retrieveSeasonData(showName):
+    output = maze.retrieveSeasons(showName)
+
+    return output[0]
+
+@app.get("/showapi/retrieve-number-episodes/{showID}/{seasonNumber}")
+async def retrieveNumberOfEpisodes(showID, seasonNumber):
+    output = maze.retrieveNumberOfEpisodes(showID, seasonNumber)
+
+    return output[0]
+
+@app.get("/showapi/retrieve-episodes/{showID}/{seasonID}/{episodeID}")
+async def retrieveEpisodesData(episodeID, showID, seasonID):
+    output = maze.retrieveEpisode(episodeID, showID, seasonID)
+
+    return [
+        EpisodeOutput(
+            id=output[0],
+            episode_number=output[1],
+            title=output[2],
+            air_date=output[3]
+        )
+    ]
