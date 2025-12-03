@@ -12,6 +12,7 @@ Define the Pydantic Data Structures
 Used as input/output on multi-input api calls 
 '''
 
+
 class retrieveShowOutput(BaseModel):
     name: str
     mazeID: int 
@@ -44,9 +45,19 @@ class EpisodeOutput(BaseModel):
     air_date: str 
 
 
-'''
-Wrapping of python methods using Python FastAPI
-'''
+
+#Wrapping of python methods using Python FastAPI
+
+
+#Double check foreign key linkage so episode -> season -> show is viable 
+#wipe table, then use code below to fully populate: The Last Of Us, The Mandalorian, and Stranger Things
+#And then convert API methods to be put/get correctly
+#Test all API endpoints 
+#Create API endpoints for showapi python methods 
+#Test all API endpoints 
+#Do code restructuring + test everything still runs 
+#Have search bar search database in real time.
+
 
 app = FastAPI()
 maze = ShowAPI()

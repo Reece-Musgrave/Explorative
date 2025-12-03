@@ -108,6 +108,14 @@ class Database:
             (showID,)
         )
         return curr.fetchall()
+    
+    def RetrieveSingleSeason(self, showID, seasonNumber):
+        curr = self.conn.cursor()
+        curr.execute(
+            "SELECT id FROM seasons WHERE show_id = ? AND season_number = ?",
+            (showID,seasonNumber)
+        )
+        return curr.fetchone()
 
     def RetrieveEpisodesBySeason(self, showName, seasonNumber):
         curr = self.conn.cursor()
@@ -123,4 +131,23 @@ class Database:
             (showName, seasonNumber)
         )
         return curr.fetchall()
+    
+    def reset(self):
+        curr = self.conn.cursor()
+
+        curr.execute("PRAGMA foreign_keys = OFF;")
+
+        curr.execute("DELETE FROM episodes;")
+        curr.execute("DELETE FROM seasons;")
+        curr.execute("DELETE FROM shows;")
+
+        curr.execute("DELETE FROM sqlite_sequence WHERE name = 'episodes';")
+        curr.execute("DELETE FROM sqlite_sequence WHERE name = 'seasons';")
+        curr.execute("DELETE FROM sqlite_sequence WHERE name = 'shows';")
+
+        curr.execute("PRAGMA foreign_keys = ON;")
+
+        self.conn.commit()
+
+        print("Database reset completed.")
 

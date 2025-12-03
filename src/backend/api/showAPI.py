@@ -34,22 +34,18 @@ class ShowAPI:
             return None
         
         data = response.json()
-        data = json.loads(data)
         return len(data)
     
     def retrieveNumberOfEpisodes(self, showID, seasonNumber):
-        showID = showID.replace(" ", "+")
         response = requests.get(f"{self.base_url}/shows/{showID}/seasons")
         if response.status_code == 404:
             print("Could not find season data")
             return None
         data = response.json()
-        data = json.load(data)
         return data[seasonNumber]["episodeOrder"]
 
     def retrieveEpisode(self, episodeID, showID, seasonID): 
-        showID = showID.replace(" ", "+")
-        response = requests.get(f"{self.base_url}/shows/{showID}/episodebynumber?season=:{seasonID}&number=:{episodeID}")
+        response = requests.get(f"{self.base_url}/shows/{showID}/episodebynumber?season={seasonID}&number={episodeID}")
         if response.status_code == 404:
             print("Episode not found")
             return None 
