@@ -13,11 +13,11 @@ import json
 
 class ShowAPI: 
 
-    base_url = "https://api.tvmaze.com"
+    base_urL = "https://api.tvmaze.com"
 
-    def retrieveShow(self, showID):
-         showID = showID.replace(" ", "+")
-         response = requests.get(f"{self.base_url}/singlesearch/shows?q={showID}")
+    def retrieve_show(self, show_id):
+         show_id = show_id.replace(" ", "+")
+         response = requests.get(f"{self.base_urL}/singlesearch/shows?q={show_id}")
          if response.status_code == 404:
             print("Show not found.")
             return None
@@ -27,8 +27,8 @@ class ShowAPI:
          return data["id"], data["name"], data["image"]["medium"] if data.get("image") else None
          
        
-    def retrieveSeasons(self, showID):
-        response = requests.get(f"{self.base_url}/shows/{showID}/seasons")
+    def retrieve_seasons(self, show_id):
+        response = requests.get(f"{self.base_urL}/shows/{show_id}/seasons")
         if response.status_code == 404:
             print("Season not found")
             return None
@@ -36,16 +36,16 @@ class ShowAPI:
         data = response.json()
         return len(data)
     
-    def retrieveNumberOfEpisodes(self, showID, seasonNumber):
-        response = requests.get(f"{self.base_url}/shows/{showID}/seasons")
+    def retrieve_number_of_episodes(self, show_id, season_number):
+        response = requests.get(f"{self.base_urL}/shows/{show_id}/seasons")
         if response.status_code == 404:
             print("Could not find season data")
             return None
         data = response.json()
-        return data[seasonNumber]["episodeOrder"]
+        return data[season_number]["episodeOrder"]
 
-    def retrieveEpisode(self, episodeID, showID, seasonID): 
-        response = requests.get(f"{self.base_url}/shows/{showID}/episodebynumber?season={seasonID}&number={episodeID}")
+    def retrieve_episode(self, episode_id, show_id, season_id): 
+        response = requests.get(f"{self.base_urL}/shows/{show_id}/episodebynumber?season={season_id}&number={episode_id}")
         if response.status_code == 404:
             print("Episode not found")
             return None 
