@@ -47,11 +47,12 @@ class EpisodeOutput(BaseModel):
 
 
 
-#Test all API endpoints / Double check inputs/outputs are correct 
-#Do code restructuring + test everything still runs 
+#https://fastapi.tiangolo.com/tutorial/testing/#fastapi-app-file
+#Introduce routes for the backend api / structure app properly
+#write unit tests for base python files
+#write unit tests for api endpoints
+#Overhaul front end to using shadcn
 #Have search bar search database in real time.
-#Introduce routes for the backend api
-#write unit tests
 
 
 #showAPI classes

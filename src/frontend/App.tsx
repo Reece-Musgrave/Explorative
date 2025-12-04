@@ -1,6 +1,7 @@
 import './App.css'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
 import Welcome from './components/blocks/Welcome.tsx'
+import React from 'react';
 
 
 
