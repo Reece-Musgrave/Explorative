@@ -2,11 +2,8 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from services.database_service import Database
 
-
 router = APIRouter()
-
-database = Database('./src/backend/databases/showDatabase/tvshows.db')
-
+database = Database('./src/backend/databases/tv_shows/tvshows.db')
 
 class RetrieveShowOutput(BaseModel):
     name: str
