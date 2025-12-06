@@ -25,4 +25,5 @@ dist-ssr
 
 __pycache__
 venv/*
-mocker.py
+mock_bootstrap_script.py
+src/backend/database/*
