@@ -28,7 +28,7 @@ async def retrieve_show_data(show_name):
 
 @router.get("/showapi/retrieve-seasons/{show_id}")
 async def retrieve_season_data(show_name):
-    output = maze.retrieve_seasons(show_name)
+    output = maze.retrieve_number_of_seasons(show_name)
 
     return output[0]
 

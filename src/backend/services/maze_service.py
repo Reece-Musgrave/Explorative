@@ -9,7 +9,9 @@ Methods Include:
 '''
 
 import requests 
-import json
+
+class APIError(Exception):
+    pass
 
 class ShowAPI: 
 
@@ -19,19 +21,17 @@ class ShowAPI:
          show_id = show_id.replace(" ", "+")
          response = requests.get(f"{self.base_urL}/singlesearch/shows?q={show_id}")
          if response.status_code == 404:
-            print("Show not found.")
-            return None
+            raise APIError(f"Show {show_id}, not found when calling external API")
 
          data = response.json()  
 
          return data["id"], data["name"], data["image"]["medium"] if data.get("image") else None
          
        
-    def retrieve_seasons(self, show_id):
+    def retrieve_number_of_seasons(self, show_id):
         response = requests.get(f"{self.base_urL}/shows/{show_id}/seasons")
         if response.status_code == 404:
-            print("Season not found")
-            return None
+            raise APIError(f"Seasons not found when calling external api for: {show_id}")
         
         data = response.json()
         return len(data)
@@ -39,16 +39,15 @@ class ShowAPI:
     def retrieve_number_of_episodes(self, show_id, season_number):
         response = requests.get(f"{self.base_urL}/shows/{show_id}/seasons")
         if response.status_code == 404:
-            print("Could not find season data")
-            return None
+            raise APIError(f"Could not retrieve individual season data for {show_id} / {season_number}")
+        
         data = response.json()
         return data[season_number]["episodeOrder"]
 
     def retrieve_episode(self, episode_id, show_id, season_id): 
         response = requests.get(f"{self.base_urL}/shows/{show_id}/episodebynumber?season={season_id}&number={episode_id}")
         if response.status_code == 404:
-            print("Episode not found")
-            return None 
+            raise APIError(f"Could not retrieve episode for {show_id} / {season_id} / {episode_id}")
         
         data = response.json()
         return{
