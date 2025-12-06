@@ -26,4 +26,4 @@ dist-ssr
 __pycache__
 venv/*
 mock_bootstrap_script.py
-src/backend/database/*
+src/backend/database*
