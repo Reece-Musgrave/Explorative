@@ -44,7 +44,7 @@ class Database:
         )
         return curr.fetchone()
 
-    def refesh_show(self, show_name):
+    def refresh_show(self, show_name):
         curr = self.conn.cursor()
         curr.execute("SELECT id FROM shows WHERE name = ?", (show_name,))
         row = curr.fetchone()
