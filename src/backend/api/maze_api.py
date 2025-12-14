@@ -3,9 +3,7 @@ from pydantic import BaseModel
 from services.maze_service import ShowAPI
 
 router = APIRouter()
-
 maze = ShowAPI()
-
 
 class ShowOutput(BaseModel):
     id: int

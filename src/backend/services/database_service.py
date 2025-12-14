@@ -9,15 +9,19 @@ Methods include:
     6/ InsertSeason - Method for inserting a new season
     7/ InsertEpisode - Method for inserting a new episode 
     8/ RetrieveSeasons - Method for returning all seasons of a show 
-    9/ RetrieveEpisodes - Methdo for returning all episodes of a season 
+    9/ RetrieveEpisodes - Method for returning all episodes of a season 
 
 '''
 import sqlite3
 import datetime
 
 class Database: 
-    def __init__(self, db_path):
-        self.conn = sqlite3.connect(db_path)
+    def __init__(self, db_path = None, connection = None):
+        if connection != None:
+            self.conn = connection
+        else:
+            self.conn = sqlite3.connect(db_path)
+        
         self.conn.row_factory = sqlite3.Row
 
     def retrieve_show(self, show_name):
@@ -28,7 +32,7 @@ class Database:
         )
         return curr.fetchone()
     
-    def retrieve_episode_timestamp(self, show_name, season_number, episode_name):
+    def retrieve_episode_timestamp(self, show_name, season_number, episode_number):
         curr = self.conn.cursor() 
         curr.execute(
             """
@@ -40,31 +44,10 @@ class Database:
             AND s.season_number = ?
             AND e.episode_number = ?
             """, 
-            (show_name, season_number, episode_name)
+            (show_name, season_number, episode_number)
         )
-        return curr.fetchone()
-
-    def refresh_show(self, show_name):
-        curr = self.conn.cursor()
-        curr.execute("SELECT id FROM shows WHERE name = ?", (show_name,))
         row = curr.fetchone()
-        if not row:
-            return False 
-        
-        show_id = row["id"]
-
-        curr.execute("""
-            DELETE FROM episodes
-            WHERE season_id IN (
-                SELECT id FROM seasons WHERE show_id = ?
-            )
-        """, (show_id,))
-
-        curr.execute("DELETE FROM seasons WHERE show_id = ?", (show_id,))
-        curr.execute("DELETE FROM shows WHERE id = ?", (show_id,))
-        self.conn.commit()
-        return True
-        
+        return row["air_date"] if row else None      
 
     def insert_show(self, show_name, maze_id, poster_url):
         last_refreshed = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -141,9 +124,12 @@ class Database:
         curr.execute("DELETE FROM seasons;")
         curr.execute("DELETE FROM shows;")
 
-        curr.execute("DELETE FROM sqlite_sequence WHERE name = 'episodes';")
-        curr.execute("DELETE FROM sqlite_sequence WHERE name = 'seasons';")
-        curr.execute("DELETE FROM sqlite_sequence WHERE name = 'shows';")
+        try:
+            curr.execute("DELETE FROM sqlite_sequence WHERE name = 'episodes';")
+            curr.execute("DELETE FROM sqlite_sequence WHERE name = 'seasons';")
+            curr.execute("DELETE FROM sqlite_sequence WHERE name = 'shows';")
+        except sqlite3.OperationalError:
+            pass
 
         curr.execute("PRAGMA foreign_keys = ON;")
 
