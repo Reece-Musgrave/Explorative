@@ -4,8 +4,8 @@ FastAPI Entry Point
 '''
 
 from fastapi import FastAPI
-from api.maze_api import router as maze_router
-from api.database_api import router as database_router
+from backend.api.maze_api import router as maze_router
+from backend.api.database_api import router as database_router
 
 app = FastAPI()
 

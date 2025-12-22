@@ -20,12 +20,20 @@ class Database:
         if connection != None:
             self.conn = connection
         else:
-            self.conn = sqlite3.connect(db_path)
-        
-        self.conn.row_factory = sqlite3.Row
+            self.db_path = db_path
+        self._row_factory = sqlite3.Row
+    
+    def _get_connection(self):
+        if hasattr(self, "conn"):
+            conn = self.conn
+        else:
+            conn = sqlite3.connect(self.db_path)
+        conn.row_factory = self._row_factory
+        return conn
 
     def retrieve_show(self, show_name):
-        curr = self.conn.cursor() 
+        conn = self._get_connection()
+        curr = conn.cursor()
         curr.execute(
             "SELECT name, tvmaze_id, poster_url FROM shows WHERE name = ? COLLATE NOCASE",
             (show_name,)
@@ -33,7 +41,8 @@ class Database:
         return curr.fetchone()
     
     def retrieve_episode_timestamp(self, show_name, season_number, episode_number):
-        curr = self.conn.cursor() 
+        conn = self._get_connection()
+        curr = conn.cursor()
         curr.execute(
             """
             SELECT e.air_date
@@ -44,14 +53,15 @@ class Database:
             AND s.season_number = ?
             AND e.episode_number = ?
             """, 
-            (show_name, season_number, episode_number)
+            (show_name, int(season_number), int(episode_number))
         )
         row = curr.fetchone()
         return row["air_date"] if row else None      
 
     def insert_show(self, show_name, maze_id, poster_url):
         last_refreshed = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        curr = self.conn.cursor()
+        conn = self._get_connection()
+        curr = conn.cursor()
         curr.execute(
             """
             INSERT INTO shows (name, tvmaze_id, poster_url, last_refreshed)
@@ -59,11 +69,12 @@ class Database:
             """,
             (show_name, maze_id, poster_url, last_refreshed)
         )
-        self.conn.commit()
+        conn.commit()
 
 
     def insert_season(self, show_id, season_number, number_episodes):
-        curr = self.conn.cursor()
+        conn = self._get_connection()
+        curr = conn.cursor()
         curr.execute(
             """
             INSERT INTO seasons (show_id, season_number, number_episodes)
@@ -71,10 +82,11 @@ class Database:
             """,
             (show_id, season_number, number_episodes)
         )
-        self.conn.commit()
+        conn.commit()
 
     def insert_episode(self, season_id, episode_number, title, air_date):
-        curr = self.conn.cursor()
+        conn = self._get_connection()
+        curr = conn.cursor()
         curr.execute(
             """
             INSERT INTO episodes (season_id, episode_number, title, air_date)
@@ -82,10 +94,11 @@ class Database:
             """,
             (season_id, episode_number, title, air_date)    
         )
-        self.conn.commit()
+        conn.commit()
 
     def retrieve_seasons(self, show_id):
-        curr = self.conn.cursor()
+        conn = self._get_connection()
+        curr = conn.cursor()
         curr.execute(
             "SELECT id, season_number FROM seasons WHERE show_id = ?",
             (show_id,)
@@ -93,7 +106,8 @@ class Database:
         return curr.fetchall()
     
     def retrieve_single_season(self, show_id, season_number):
-        curr = self.conn.cursor()
+        conn = self._get_connection()
+        curr = conn.cursor()
         curr.execute(
             "SELECT id FROM seasons WHERE show_id = ? AND season_number = ?",
             (show_id,season_number)
@@ -101,7 +115,8 @@ class Database:
         return curr.fetchone()
 
     def retrieve_episodes_by_season(self, show_name, season_number):
-        curr = self.conn.cursor()
+        conn = self._get_connection()
+        curr = conn.cursor()
         curr.execute(
             """
             SELECT e.id, e.episode_number, e.title, e.air_date
@@ -116,7 +131,8 @@ class Database:
         return curr.fetchall()
     
     def reset(self):
-        curr = self.conn.cursor()
+        conn = self._get_connection()
+        curr = conn.cursor()
 
         curr.execute("PRAGMA foreign_keys = OFF;")
 
@@ -133,7 +149,9 @@ class Database:
 
         curr.execute("PRAGMA foreign_keys = ON;")
 
-        self.conn.commit()
+        conn.commit()
 
         print("Database reset completed.")
 
+def get_database():
+    return Database("./backend/database/tv_shows/tvshows.db")

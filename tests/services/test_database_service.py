@@ -15,23 +15,20 @@ def in_memory_db():
         INSERT INTO episodes VALUES (1, 1, 6, 'Example Episode', '26th July 2025');
         """)
     conn.commit()
+    
     database = Database(connection=conn)
-
     yield database
     conn.close()
-
 
 def test_retrieve_show_returns_show(in_memory_db):
     assert in_memory_db.retrieve_show('Example Show') != None
         
-
 def test_retrieve_show_returns_none(in_memory_db):
     assert in_memory_db.retrieve_show('Non-real show') == None
         
 def test_retrieve_episode_timestamp_returns_timestmp(in_memory_db):
     assert in_memory_db.retrieve_episode_timestamp('Example Show', 5, 6) == '26th July 2025'
         
-
 def test_retrieve_episode_timestamp_returns_exception(in_memory_db):
     assert in_memory_db.retrieve_episode_timestamp('Example Show', 4, 6) == None
 

@@ -1,9 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException ,Depends
 from pydantic import BaseModel
-from services.database_service import Database
+import sqlite3
+from backend.services.database_service import get_database
 
 router = APIRouter()
-database = Database('./src/backend/databases/tv_shows/tvshows.db')
 
 class RetrieveShowOutput(BaseModel):
     name: str
@@ -38,50 +38,70 @@ class EpisodeOutput(BaseModel):
 
 
 @router.get("/database/retrieve-show/{show_name}")
-async def retrieve_show(show_name):
+async def retrieve_show(show_name, database = Depends(get_database)):
     output = database.retrieve_show(show_name)
-    data = {
-        'name': output["name"],
-        'maze_id': output["tvmaze_id"],
-        'url': output["poster_url"]
-    }
-    data = RetrieveShowOutput(**data)
-    return data
+    
+    if output == None:
+        raise HTTPException(status_code=404)
+    
+    return RetrieveShowOutput(
+        name=output["name"],
+        maze_id=output["tvmaze_id"],
+        url=output["poster_url"]
+    )
 
-@router.get("/database/retrieve-episode-air_date")
-async def retrieve_episode_air_date(data: RetrieveEpisodeTimestampInput):
-    output = database.retrieve_show(data.name, data.season_number, data.episode_name)
+@router.get(
+        "/database/retrieve-episode-air_date",
+        response_model=str)
+async def retrieve_episode_air_date(data: RetrieveEpisodeTimestampInput = Depends(), database = Depends(get_database)):
+    output = database.retrieve_episode_timestamp(data.show_name, data.season_number, data.episode_name)
+    
+    if output == None:
+        raise HTTPException(status_code=404)
+    
     return output
 
-@router.get("/database/refresh-show/{show_name}")
-async def refresh_show(show_name):
-    output = database.refesh_show(show_name)
+@router.put("/database/insert-show", status_code=204)
+async def insert_show(data: RetrieveShowOutput, database = Depends(get_database)):
+    try:
+        database.insert_show(data.name, data.maze_id, data.url)
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=409)
 
-@router.put("/database/insert-show")
-async def insert_show(data: RetrieveShowOutput):
-    output = database.insert_show(data.name, data.maze_id, data.url)
+@router.put("/database/insert-season", status_code=204)
+async def insert_season(data: InsertSeasonInput, database = Depends(get_database)):
+    try:
+        database.insert_season(data.show_id, data.season_number, data.episode_number)
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=409)
 
-@router.put("/database/insert-season")
-async def insert_season(data: InsertSeasonInput):
-    output = database.insert_season(data.show_id, data.season_number, data.episode_number)
-
-@router.put("/database/insert-episode")
-async def insert_episode(data: InsertEpisodeInput):
-    output = database.insert_episode(data.season_id, data.episode_number, data.title, data.air_date)
+@router.put("/database/insert-episode", status_code=204)
+async def insert_episode(data: InsertEpisodeInput, database = Depends(get_database)):
+    try: 
+        database.insert_episode(data.season_id, data.episode_number, data.title, data.air_date)
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=409)
 
 @router.get("/database/retrieve-season/{show_id}")
-async def retrieve_season(show_id):
+async def retrieve_season(show_id, database = Depends(get_database)):
     output = database.retrieve_seasons(show_id)
-    data = {
-        'id': output[0],
-        'season_number': output[1]
-    }
-    data = RetrieveSeasonOutput(**data)
-    return data
+    
+    if output == None:
+        raise HTTPException(status_code=404)
+    
+    output = output[0]
+    return RetrieveSeasonOutput(
+            id=output["id"],
+            season_number=output["season_number"],
+    )
 
 @router.get("/database/retrieve-episode/{show_name}/{season_number}")
-async def retrieve_episodes(show_name, season_number):
+async def retrieve_episodes(show_name, season_number, database = Depends(get_database)):
     output = database.retrieve_episodes_by_season(show_name, season_number)
+    
+    if output == None:
+        raise HTTPException(status_code=404)
+
     return [
         EpisodeOutput(
             id=r[0],

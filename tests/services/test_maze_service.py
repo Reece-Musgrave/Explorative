@@ -101,7 +101,7 @@ def test_return_episode_returns_episode_data(requests_mock):
     )
     
     result = api.retrieve_episode(example_episode_id, example_show_id, example_season_id)
-    assert result["season_ID"] == 3
+    assert result["id"] == 3
 
 def test_return_episode_returns_exception(requests_mock):
     api = ShowAPI()
