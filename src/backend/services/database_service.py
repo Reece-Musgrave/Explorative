@@ -35,7 +35,7 @@ class Database:
         conn = self._get_connection()
         curr = conn.cursor()
         curr.execute(
-            "SELECT name, tvmaze_id, poster_url FROM shows WHERE name = ? COLLATE NOCASE",
+            "SELECT id, name, tvmaze_id, poster_url FROM shows WHERE name = ? COLLATE NOCASE",
             (show_name,)
         )
         return curr.fetchone()
@@ -100,7 +100,7 @@ class Database:
         conn = self._get_connection()
         curr = conn.cursor()
         curr.execute(
-            "SELECT id, season_number FROM seasons WHERE show_id = ?",
+            "SELECT id, season_number, number_episodes FROM seasons WHERE show_id = ?",
             (show_id,)
         )
         return curr.fetchall()

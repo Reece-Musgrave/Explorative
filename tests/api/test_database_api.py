@@ -6,6 +6,7 @@ import sqlite3
 def test_retrieve_show_success(mocker):
     mock_db = mocker.MagicMock()
     mock_db.retrieve_show.return_value = {
+        "id": 1,
         "name": "Breaking Bad",
         "tvmaze_id": 169,
         "poster_url": "http://image.url"
@@ -17,6 +18,7 @@ def test_retrieve_show_success(mocker):
 
     assert response.status_code == 200
     assert response.json() == {
+        "id": 1,
         "name": "Breaking Bad",
         "maze_id": 169,
         "url": "http://image.url"
@@ -181,17 +183,18 @@ def test_insert_episode_failure(mocker):
 
 def test_retrieve_season_success(mocker):
     mock_db = mocker.MagicMock()
-    mock_db.retrieve_seasons.return_value = [{"id": "6", "season_number":"5"}]
+    mock_db.retrieve_seasons.return_value = [{"id": "6", "season_number":"5", "number_episodes":"10"}]
     app.dependency_overrides[get_database] = lambda: mock_db
     client = TestClient(app)
 
     response = client.get("/database/retrieve-season/6")
     
     assert response.status_code == 200
-    assert response.json() == {
+    assert response.json() == [{
         "id": 6,
-        "season_number": 5
-    }
+        "season_number": 5,
+        "number_episodes": 10
+    }]
     app.dependency_overrides.clear()
 
 def test_retrieve_season_failure(mocker):

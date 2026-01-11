@@ -27,3 +27,5 @@ __pycache__
 venv/*
 mock_bootstrap_script.py
 src/backend/database/tv_shows/tvshows.db
+src/backend/database/users/user_db.db
+*.env

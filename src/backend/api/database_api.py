@@ -6,6 +6,12 @@ from backend.services.database_service import get_database
 router = APIRouter()
 
 class RetrieveShowOutput(BaseModel):
+    id: int
+    name: str
+    maze_id: int 
+    url: str
+
+class InsertShowInput(BaseModel):
     name: str
     maze_id: int 
     url: str
@@ -29,6 +35,7 @@ class InsertEpisodeInput(BaseModel):
 class RetrieveSeasonOutput(BaseModel):
     id: int 
     season_number: int 
+    number_episodes: int
 
 class EpisodeOutput(BaseModel):
     id: int
@@ -45,6 +52,7 @@ async def retrieve_show(show_name, database = Depends(get_database)):
         raise HTTPException(status_code=404)
     
     return RetrieveShowOutput(
+        id=output["id"],
         name=output["name"],
         maze_id=output["tvmaze_id"],
         url=output["poster_url"]
@@ -62,7 +70,7 @@ async def retrieve_episode_air_date(data: RetrieveEpisodeTimestampInput = Depend
     return output
 
 @router.put("/database/insert-show", status_code=204)
-async def insert_show(data: RetrieveShowOutput, database = Depends(get_database)):
+async def insert_show(data: InsertShowInput, database = Depends(get_database)):
     try:
         database.insert_show(data.name, data.maze_id, data.url)
     except sqlite3.IntegrityError:
@@ -89,11 +97,16 @@ async def retrieve_season(show_id, database = Depends(get_database)):
     if output == None:
         raise HTTPException(status_code=404)
     
-    output = output[0]
-    return RetrieveSeasonOutput(
-            id=output["id"],
-            season_number=output["season_number"],
-    )
+    outputArray = []
+    for season in output:
+        outputArray.append(
+            RetrieveSeasonOutput(
+                id=season["id"],
+                season_number=season["season_number"],
+                number_episodes=season["number_episodes"]
+            )   
+        )
+    return outputArray
 
 @router.get("/database/retrieve-episode/{show_name}/{season_number}")
 async def retrieve_episodes(show_name, season_number, database = Depends(get_database)):
