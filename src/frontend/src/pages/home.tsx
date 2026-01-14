@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
-import * as React from "react"
 import {
   Command,
   CommandEmpty,
@@ -18,27 +17,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { retrieveShow } from "../api/shows/retrieveShow.ts"
-import { type RetrieveShowOutput } from "../api/shows/types.ts";
+import { type RetrieveShowOutput, type SelectionString } from "../api/shows/types.ts";
+import { useState } from 'react';
 
 
-
-const frameworks = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-]
 export function Home() {
 
-    const [error, setError] = React.useState<string | null>(null);
-    const [showName, setShowName] = React.useState("");
-    const [showData, setShowData] = React.useState<RetrieveShowOutput | null>(null);
-    const [showSeasons, setShowSeasons] = React.useState(false);
-    const [showEpisodes, setShowEpisodes] = React.useState(false);
-    const [openSeason, setOpenSeason] = React.useState(false);
-    const [valueSeason, setValueSeason] = React.useState<number | null>(null);
-    const [openEpisode, setOpenEpisode] = React.useState(false);
-    const [valueEpisode, setValueEpisode] = React.useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [showName, setShowName] = useState("");
+    const [showData, setShowData] = useState<RetrieveShowOutput | null>(null);
+    const [showSeasons, setShowSeasons] = useState(false);
+    const [showEpisodes, setShowEpisodes] = useState(false);
+    const [openSeason, setOpenSeason] = useState(false);
+    const [showGo, setShowGo] = useState(false);
+    const [valueSeason, setValueSeason] = useState<number | null>(null);
+    const [openEpisode, setOpenEpisode] = useState(false);
+    const [valueEpisode, setValueEpisode] = useState("");
+    const [selectionString, setSelectionString] = useState<SelectionString | null>(null);
 
     const handleSearchClick = async () => {
       setShowSeasons(true);
@@ -60,11 +55,8 @@ export function Home() {
             const season = showData.episodes.find(
               ([, seasonNumber]) => seasonNumber === valueSeason
             );
-
             if (!season) return [];
-
             const numberOfEpisodes = season[2];
-
             return Array.from({ length: numberOfEpisodes }, (_, i) => ({
               value: i + 1,
               label: `Episode ${i + 1}`,
@@ -94,6 +86,11 @@ export function Home() {
               Search
             </Button>
           </div>
+          {showSeasons && (
+            <div className="items-center justify-center">
+              <img src={showData?.url}/>
+            </div>
+          )}
           {showSeasons && (
             <div className="flex w-full max-w-sm items-center justify-center gap-2">     
               <Popover open={openSeason} onOpenChange={setOpenSeason}>
@@ -170,6 +167,7 @@ export function Home() {
                             onSelect={(currentValue) => {
                               setValueEpisode(currentValue);
                               setOpenEpisode(false);
+                              setShowGo(true);
                             }}
                           >
                             {episode.label}
@@ -188,7 +186,18 @@ export function Home() {
                     </Command>
                   </PopoverContent>
                 </Popover>
-              )}
+                )}
+                {showGo && (
+                  <Button variant="outline" onClick={() => {
+                    setSelectionString({
+                      name: showData?.name ?? "",
+                      maze_id: showData?.maze_id ?? 0,
+                      season_number: valueSeason ?? 0, 
+                      episode_number: Number(valueEpisode)
+                    });
+                    console.log(selectionString);
+                  }}>Let's Go!</Button>
+                )}
             </div>
           )}
         </div>
