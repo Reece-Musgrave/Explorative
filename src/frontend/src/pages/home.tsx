@@ -1,6 +1,7 @@
 import Navbar from "../components/layout/navbar.tsx"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { AlertTitle } from "@/components/ui/alert"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -18,7 +19,8 @@ import {
 } from "@/components/ui/popover"
 import { retrieveShow } from "../api/shows/retrieveShow.ts"
 import { type RetrieveShowOutput, type SelectionString } from "../api/shows/types.ts";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Alert } from "@/components/ui/alert.tsx"
 
 
 export function Home() {
@@ -34,6 +36,7 @@ export function Home() {
     const [openEpisode, setOpenEpisode] = useState(false);
     const [valueEpisode, setValueEpisode] = useState("");
     const [selectionString, setSelectionString] = useState<SelectionString | null>(null);
+    const [errorPopup, setErrorPopup] = useState(false)
 
     const handleSearchClick = async () => {
       setShowSeasons(true);
@@ -43,6 +46,8 @@ export function Home() {
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Something went wrong");
+        setShowSeasons(false);
+        setErrorPopup(true);
       }
       setValueSeason(null);
       setValueEpisode("");
@@ -72,6 +77,16 @@ export function Home() {
             }))
     : [];
 
+    useEffect(() => {
+      if (errorPopup) {
+        const timer = setTimeout(() => {
+          setErrorPopup(false);
+        }, 3000); 
+  
+        return () => clearTimeout(timer);
+      }
+    }, [errorPopup]);
+
     return (
     <div className="bg-background text-foreground min-h-screen" >
         <Navbar />
@@ -86,6 +101,11 @@ export function Home() {
               Search
             </Button>
           </div>
+          {errorPopup && (
+            <Alert variant="destructive" className="text-center max-w-md"> 
+              <AlertTitle>Sorry! Could not find that show. Did you type it correctly?</AlertTitle>
+            </Alert>
+          )}
           {showSeasons && (
             <div className="items-center justify-center">
               <img src={showData?.url}/>
