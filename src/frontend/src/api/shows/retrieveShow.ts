@@ -21,7 +21,7 @@ export async function retrieveShow(showName: string): Promise<RetrieveShowOutput
             };
         }
         else {
-            throw new Error("Unable to retrieve show from database");
+            throw new Error("Unable to retrieve season data from database");
         }
     }
     else {
