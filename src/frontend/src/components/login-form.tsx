@@ -13,11 +13,27 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { loginUser } from "../api/users/login.ts"
+import { useState } from 'react'
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+
+    const handleLoginClick = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        try {
+          const data = await loginUser({ username, password });
+          console.log(data);
+        } catch (err) {
+          console.error(err);
+        }
+    };
+  
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -25,15 +41,16 @@ export function LoginForm({
           <CardTitle className="text-xl">Welcome back</CardTitle>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleLoginClick}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="username">Username</FieldLabel>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="abc@example.com"
+                  id="username"
+                  type="text"
                   required
+                  value = {username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </Field>
               <Field>
@@ -46,7 +63,12 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input 
+                    id="password" 
+                    type="password" 
+                    required 
+                    value = {password}
+                    onChange={(e) => setPassword(e.target.value)}/>
               </Field>
               <Field>
                 <Button type="submit">Login</Button>
