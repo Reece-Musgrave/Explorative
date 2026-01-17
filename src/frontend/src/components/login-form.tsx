@@ -1,38 +1,40 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { loginUser } from "../api/users/login.ts"
-import { useState } from 'react'
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { loginUser } from "../api/users/login.ts";
+import { useState } from "react";
+import { useAuth } from "../context/authContext";
+import { useNavigate } from "react-router-dom";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+  const { login } = useAuth(); 
+  const navigate = useNavigate();
 
-    const handleLoginClick = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        try {
-          const data = await loginUser({ username, password });
-          console.log(data);
-        } catch (err) {
-          console.error(err);
-        }
-    };
-  
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLoginClick = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const data = await loginUser({ username, password });
+      login(data.access_token); 
+      navigate("/"); 
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -49,7 +51,7 @@ export function LoginForm({
                   id="username"
                   type="text"
                   required
-                  value = {username}
+                  value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
               </Field>
@@ -63,12 +65,13 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input 
-                    id="password" 
-                    type="password" 
-                    required 
-                    value = {password}
-                    onChange={(e) => setPassword(e.target.value)}/>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </Field>
               <Field>
                 <Button type="submit">Login</Button>
@@ -81,5 +84,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
