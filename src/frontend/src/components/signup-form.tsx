@@ -13,12 +13,35 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
+import { register } from "../api/users/register.ts"
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+
+
+  const handleSignupClick = async (e: React.FormEvent<HTMLFormElement>) => {
+          e.preventDefault();
+          try {
+            if (password == passwordConf){
+              setUsername(full_name)
+              const data = await register({ username, email, full_name, password });
+              console.log(data);
+            }
+          } catch (err) {
+            console.error(err);
+          }
+  };
+    
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConf, setPasswordConf] = useState("");
+  const [email, setEmail] = useState("");
+  const [full_name, setFullName] = useState("");
+  
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -29,11 +52,18 @@ export function SignupForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSignupClick}>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                <Input id="name" type="text" placeholder="John Doe" required />
+                <Input 
+                  id="name" 
+                  type="text" 
+                  placeholder="John Doe" 
+                  required 
+                  value = {full_name}
+                  onChange={(e) => 
+                    setFullName(e.target.value)}/>
               </Field>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -42,19 +72,32 @@ export function SignupForm({
                   type="email"
                   placeholder="m@example.com"
                   required
+                  value = {email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </Field>
               <Field>
                 <Field className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input id="password" type="password" required />
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      required 
+                      value = {password}
+                      onChange={(e) => setPassword(e.target.value)}/>
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="confirm-password">
                       Confirm Password
                     </FieldLabel>
-                    <Input id="confirm-password" type="password" required />
+                    <Input 
+                      id="confirm-password" 
+                      type="password" 
+                      required 
+                      value = {passwordConf}
+                      onChange={(e) => setPasswordConf(e.target.value)}
+                  />
                   </Field>
                 </Field>
                 <FieldDescription>
