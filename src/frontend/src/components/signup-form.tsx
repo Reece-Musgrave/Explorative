@@ -14,14 +14,20 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { useState } from "react"
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input"
+
 import { register } from "../api/users/register.ts"
+import { loginUser } from "../api/users/login.ts";
+import { useAuth } from "../context/authContext";
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
 
+  const { login } = useAuth(); 
+  const navigate = useNavigate();
 
   const handleSignupClick = async (e: React.FormEvent<HTMLFormElement>) => {
           e.preventDefault();
@@ -29,7 +35,9 @@ export function SignupForm({
             if (password == passwordConf){
               setUsername(full_name)
               const data = await register({ username, email, full_name, password });
-              console.log(data);
+              const signin = await loginUser({ username, password });
+                    login(signin.access_token); 
+                    navigate("/"); 
             }
           } catch (err) {
             console.error(err);

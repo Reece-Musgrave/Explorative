@@ -1,6 +1,5 @@
-import { type RetrieveShowOutput } from "./types";
 import { API_BASE_URL } from "../client";
-
+import { type RetrieveShowOutput } from "./types";
 
 export async function retrieveShow(showName: string): Promise<RetrieveShowOutput> {
     const responseShow = await fetch(`${API_BASE_URL}/database/retrieve-show/${encodeURIComponent(showName)}`);

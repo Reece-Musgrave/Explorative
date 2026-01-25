@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
-import Home from "./pages/home.tsx"
-import LoginPage from "./pages/log-in.tsx"
-import SignupPage from './pages/sign-up.tsx';
+import Home from "./pages/Home.tsx"
+import LoginPage from "./pages/Login.tsx"
+import SignupPage from './pages/Signup.tsx';
 import { ThemeProvider } from "@/components/theme-provider"
 
 

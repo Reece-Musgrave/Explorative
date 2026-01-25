@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { retrieveShow } from "../api/shows/retrieveShow.ts"
+import { retrieveShow } from "../api/shows/shows.ts"
 import { type RetrieveShowOutput, type SelectionString } from "../api/shows/types.ts";
 import { useState, useEffect } from 'react';
 import { Alert } from "@/components/ui/alert.tsx"

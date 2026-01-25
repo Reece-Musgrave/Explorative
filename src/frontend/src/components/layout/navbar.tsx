@@ -9,9 +9,20 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
+import { useAuth } from "../../context/authContext";
+import { API_BASE_URL } from "../../api/client";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { accessToken, logout} = useAuth()
+
+  const handleLogout = async () => {
+    await fetch(`${API_BASE_URL}/users/logout`, {
+      method: "POST",
+      credentials: "include",  
+    });
+    logout();
+  }
 
   return (
     <header className="bg-white">
@@ -48,12 +59,18 @@ export default function Navbar() {
           </a>
         </PopoverGroup>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <Link
-            to="/login"
-            className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-          >
-            Log in / Sign up
-          </Link>
+        {accessToken ? ( 
+                  <div>
+                    <button onClick={handleLogout}
+                    className="-mx-3 rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Logout</button>
+                  </div>
+                ) : (
+                <Link
+                  to="/login"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                  >
+                  Log in / Sign up
+                  </Link>)}
         </div>
       </nav>
       <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
@@ -100,12 +117,18 @@ export default function Navbar() {
                 </a>
               </div>
               <div className="py-6">
-              <Link
-                to="/login"
-                className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-              >
-                Log in / Sign up
-              </Link>
+              {accessToken ? ( 
+                  <div>
+                    <button onClick={handleLogout}
+                    className="-mx-3 rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Logout</button>
+                  </div>
+                ) : (
+                <Link
+                  to="/login"
+                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                  >
+                  Log in / Sign up
+                  </Link>)}
               </div>
             </div>
           </div>

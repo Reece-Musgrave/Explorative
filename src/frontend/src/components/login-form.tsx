@@ -13,10 +13,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { loginUser } from "../api/users/login.ts";
+
 import { useState } from "react";
-import { useAuth } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
+
+import { loginUser } from "../api/users/login.ts";
+import { useAuth } from "../context/authContext";
+
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const { login } = useAuth(); 

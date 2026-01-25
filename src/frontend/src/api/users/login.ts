@@ -11,7 +11,8 @@ export async function loginUser(login: LoginInput): Promise<LoginOutput> {
     const request: RequestInfo = new Request(`${API_BASE_URL}/users/login`, {
         method: 'POST',
         headers: headers,
-        body: body
+        body: body,
+        credentials: 'include',
     })
     const response = await fetch(request);
     if (response.ok){
