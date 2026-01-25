@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status, APIRouter, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from backend.models.token import Token
 from backend.models.user import User
 from backend.auth.hashing import get_password_hash
@@ -54,8 +55,8 @@ async def login_for_access_token(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,  
-        samesite="lax",
+        secure=True,  
+        samesite="none",
         max_age= 24 * 60 * 60,
     )
     
@@ -108,11 +109,13 @@ async def register_user(data: UserInput, db = Depends(get_database)):
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409)
 
-
-
-#Authenticated Method example
-@router.get("/users/me/", response_model=User)
-async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)],
-):
-    return current_user
+@router.post("/users/logout")
+async def logout_user():
+    response = JSONResponse(content={"detail": "Logged out"})
+    response.delete_cookie(
+        key="refresh_token",
+        path="/",
+        secure=True,       
+        samesite="none",   
+    )
+    return response
