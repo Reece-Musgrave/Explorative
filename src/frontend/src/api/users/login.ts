@@ -8,7 +8,7 @@ export async function loginUser(login: LoginInput): Promise<LoginOutput> {
         username: login.username,
         password: login.password,
     });
-    const request: RequestInfo = new Request(`${API_BASE_URL}/users/login`, {
+    const request: RequestInfo = new Request(`${API_BASE_URL}/api/v1/users/login`, {
         method: 'POST',
         headers: headers,
         body: body,

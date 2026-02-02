@@ -15,7 +15,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/users/refresh`, {
+        const res = await fetch(`${API_BASE_URL}/api/v1/users/refresh`, {
           method: "POST",
           credentials: "include", 
         });

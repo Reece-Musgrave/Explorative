@@ -9,7 +9,7 @@ def test_retrieve_show_data_success(mocker):
     app.dependency_overrides[get_maze_service] = lambda: mock_response
     client = TestClient(app)
 
-    response = client.get("/showapi/retrieve-show/Example Show")
+    response = client.get("/api/v1/showapi/retrieve-show/Example Show")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -25,7 +25,7 @@ def test_retrieve_show_data_failure(mocker):
     app.dependency_overrides[get_maze_service] = lambda: mock_response
     client = TestClient(app)
 
-    response = client.get("/showapi/retrieve-show/Example Show")
+    response = client.get("/api/v1/showapi/retrieve-show/Example Show")
 
     assert response.status_code == 404
     assert response.json() == {'detail': 'Show not found'}
@@ -37,7 +37,7 @@ def test_retrieve_season_data_success(mocker):
     app.dependency_overrides[get_maze_service] = lambda: mock_response
     client = TestClient(app)
 
-    response = client.get("/showapi/retrieve-seasons/1000")
+    response = client.get("/api/v1/showapi/retrieve-seasons/1000")
 
     assert response.status_code == 200 
     assert response.json() == 10
@@ -49,7 +49,7 @@ def test_retrieve_season_data_failure(mocker):
     app.dependency_overrides[get_maze_service] = lambda: mock_response
     client = TestClient(app) 
 
-    response = client.get("/showapi/retrieve-seasons/1000")
+    response = client.get("/api/v1/showapi/retrieve-seasons/1000")
     
     assert response.status_code == 404
     assert response.json() == {'detail': 'Season not found'}
@@ -61,7 +61,7 @@ def test_retrieve_number_episodes_sucess(mocker):
     app.dependency_overrides[get_maze_service] = lambda: mock_response
     client = TestClient(app)
 
-    response = client.get("/showapi/retrieve-number-episodes/10/5")
+    response = client.get("/api/v1/showapi/retrieve-number-episodes/10/5")
 
     assert response.status_code == 200
     assert response.json() == 10
@@ -73,7 +73,7 @@ def test_retrieve_number_episodes_failure(mocker):
     app.dependency_overrides[get_maze_service] = lambda: mock_response
     client = TestClient(app)
 
-    response = client.get("/showapi/retrieve-number-episodes/10/5")
+    response = client.get("/api/v1/showapi/retrieve-number-episodes/10/5")
 
     assert response.status_code == 404
     assert response.json() == {'detail': 'Season not found'}
@@ -90,7 +90,7 @@ def test_retrieve_episode_data_success(mocker):
     app.dependency_overrides[get_maze_service] = lambda: mock_response
     client = TestClient(app)
 
-    response = client.get("/showapi/retrieve-episodes/10000/1011/1005")
+    response = client.get("/api/v1/showapi/retrieve-episodes/10000/1011/1005")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -107,7 +107,7 @@ def test_retrieve_episode_data_failure(mocker):
     app.dependency_overrides[get_maze_service] = lambda: mock_response
     client = TestClient(app)
 
-    response = client.get("/showapi/retrieve-episodes/10000/1011/1005")
+    response = client.get("/api/v1/showapi/retrieve-episodes/10000/1011/1005")
 
     assert response.status_code == 404
     assert response.json() == {'detail': 'Episode not found'}

@@ -44,7 +44,7 @@ class EpisodeOutput(BaseModel):
     air_date: str 
 
 
-@router.get("/database/retrieve-show/{show_name}")
+@router.get("/api/v1/database/retrieve-show/{show_name}")
 async def retrieve_show(show_name, database = Depends(get_database)):
     output = database.retrieve_show(show_name)
     
@@ -59,7 +59,7 @@ async def retrieve_show(show_name, database = Depends(get_database)):
     )
 
 @router.get(
-        "/database/retrieve-episode-air_date",
+        "/api/v1/database/retrieve-episode-air_date",
         response_model=str)
 async def retrieve_episode_air_date(data: RetrieveEpisodeTimestampInput = Depends(), database = Depends(get_database)):
     output = database.retrieve_episode_timestamp(data.show_name, data.season_number, data.episode_name)
@@ -69,28 +69,28 @@ async def retrieve_episode_air_date(data: RetrieveEpisodeTimestampInput = Depend
     
     return output
 
-@router.put("/database/insert-show", status_code=204)
+@router.put("/api/v1/database/insert-show", status_code=204)
 async def insert_show(data: InsertShowInput, database = Depends(get_database)):
     try:
         database.insert_show(data.name, data.maze_id, data.url)
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409)
 
-@router.put("/database/insert-season", status_code=204)
+@router.put("/api/v1/database/insert-season", status_code=204)
 async def insert_season(data: InsertSeasonInput, database = Depends(get_database)):
     try:
         database.insert_season(data.show_id, data.season_number, data.episode_number)
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409)
 
-@router.put("/database/insert-episode", status_code=204)
+@router.put("/api/v1/database/insert-episode", status_code=204)
 async def insert_episode(data: InsertEpisodeInput, database = Depends(get_database)):
     try: 
         database.insert_episode(data.season_id, data.episode_number, data.title, data.air_date)
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409)
 
-@router.get("/database/retrieve-season/{show_id}")
+@router.get("/api/v1/database/retrieve-season/{show_id}")
 async def retrieve_season(show_id, database = Depends(get_database)):
     output = database.retrieve_seasons(show_id)
     
@@ -108,7 +108,7 @@ async def retrieve_season(show_id, database = Depends(get_database)):
         )
     return outputArray
 
-@router.get("/database/retrieve-episode/{show_name}/{season_number}")
+@router.get("/api/v1/database/retrieve-episode/{show_name}/{season_number}")
 async def retrieve_episodes(show_name, season_number, database = Depends(get_database)):
     output = database.retrieve_episodes_by_season(show_name, season_number)
     

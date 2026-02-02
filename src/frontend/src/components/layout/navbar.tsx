@@ -17,7 +17,7 @@ export default function Navbar() {
   const { accessToken, logout} = useAuth()
 
   const handleLogout = async () => {
-    await fetch(`${API_BASE_URL}/users/logout`, {
+    await fetch(`${API_BASE_URL}/api/v1/users/logout`, {
       method: "POST",
       credentials: "include",  
     });

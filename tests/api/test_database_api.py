@@ -14,7 +14,7 @@ def test_retrieve_show_success(mocker):
     app.dependency_overrides[get_database] = lambda: mock_db
     client = TestClient(app)
     
-    response = client.get("/database/retrieve-show/Breaking%20Bad")
+    response = client.get("/api/v1/database/retrieve-show/Breaking%20Bad")
 
     assert response.status_code == 200
     assert response.json() == {
@@ -31,7 +31,7 @@ def test_retrieve_show_failure(mocker):
     app.dependency_overrides[get_database] = lambda: mock_db
     client = TestClient(app)
 
-    response = client.get("/database/retrieve-show/The Walking Dead")
+    response = client.get("/api/v1/database/retrieve-show/The Walking Dead")
 
     assert response.status_code == 404
     app.dependency_overrides.clear()
@@ -43,7 +43,7 @@ def test_retrieve_episode_air_date_success(mocker):
     client = TestClient(app)
     
     response = client.get(
-        "/database/retrieve-episode-air_date",
+        "/api/v1/database/retrieve-episode-air_date",
         params={
             "show_name": "Example Show",
             "season_number": "1",
@@ -62,7 +62,7 @@ def test_retrieve_episode_air_date_failure(mocker):
     client = TestClient(app)
     
     response = client.get(
-        "/database/retrieve-episode-air_date",
+        "/api/v1/database/retrieve-episode-air_date",
         params={
             "show_name": "Example Show",
             "season_number": "1",
@@ -79,7 +79,7 @@ def test_insert_show_success(mocker):
     client = TestClient(app)
 
     response = client.put(
-        "/database/insert-show",
+        "/api/v1/database/insert-show",
         json={
             "name": "Example Show",
             "maze_id": "45061",
@@ -97,7 +97,7 @@ def test_insert_show_failure(mocker):
     client = TestClient(app)
 
     response = client.put(
-        "/database/insert-show",
+        "/api/v1/database/insert-show",
         json={
             "name": "Example Show",
             "maze_id": "45061",
@@ -115,7 +115,7 @@ def test_insert_season_success(mocker):
     client = TestClient(app)
 
     response = client.put(
-        "/database/insert-season",
+        "/api/v1/database/insert-season",
         json={
             "show_id": "5001",
             "season_number": "2",
@@ -133,7 +133,7 @@ def test_insert_season_failure(mocker):
     client = TestClient(app)
 
     response = client.put(
-        "/database/insert-season",
+        "/api/v1/database/insert-season",
         json={
             "show_id": "5001",
             "season_number": "2",
@@ -150,7 +150,7 @@ def test_insert_episode_success(mocker):
     client = TestClient(app)
 
     response = client.put(
-        "/database/insert-episode",
+        "/api/v1/database/insert-episode",
         json = {
             "season_id": "50042",
             "episode_number": "5",
@@ -169,7 +169,7 @@ def test_insert_episode_failure(mocker):
     client = TestClient(app)
 
     response = client.put(
-        "/database/insert-episode",
+        "/api/v1/database/insert-episode",
         json = {
             "season_id": "50042",
             "episode_number": "5",
@@ -187,7 +187,7 @@ def test_retrieve_season_success(mocker):
     app.dependency_overrides[get_database] = lambda: mock_db
     client = TestClient(app)
 
-    response = client.get("/database/retrieve-season/6")
+    response = client.get("/api/v1/database/retrieve-season/6")
     
     assert response.status_code == 200
     assert response.json() == [{
@@ -203,7 +203,7 @@ def test_retrieve_season_failure(mocker):
     app.dependency_overrides[get_database] = lambda: mock_db
     client = TestClient(app)
 
-    response = client.get("/database/retrieve-season/6")
+    response = client.get("/api/v1/database/retrieve-season/6")
 
     assert response.status_code == 404
     app.dependency_overrides.clear()

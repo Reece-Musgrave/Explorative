@@ -6,6 +6,7 @@ This is a work in progress project with the intention to integrate with other on
 - Backend database service, I/O database operations 
 - Backend MazeTV service for integrating with a Third Party API to source TV Metadata
 - FASTAPI endpoints to cover user authentication & backend services 
+- Unit test coverage for FAST API Endpoints and Underlying services
 - React/Typescript/Tailwind frontend
 
 ## Setup Instructions/ Commands

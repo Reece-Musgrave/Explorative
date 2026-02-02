@@ -16,7 +16,7 @@ class EpisodeOutput(BaseModel):
     air_date: str 
 
 
-@router.get("/showapi/retrieve-show/{show_name}")
+@router.get("/api/v1/showapi/retrieve-show/{show_name}")
 async def retrieve_show_data(show_name, maze = Depends(get_maze_service)):
     try:
         output = maze.retrieve_show(show_name)
@@ -26,7 +26,7 @@ async def retrieve_show_data(show_name, maze = Depends(get_maze_service)):
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.get(
-        "/showapi/retrieve-seasons/{show_id}",
+        "/api/v1/showapi/retrieve-seasons/{show_id}",
         response_model=int)
 async def retrieve_season_data(show_id, maze = Depends(get_maze_service)):
     try:
@@ -35,16 +35,17 @@ async def retrieve_season_data(show_id, maze = Depends(get_maze_service)):
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.get(
-        "/showapi/retrieve-number-episodes/{show_id}/{season_number}",
+        "/api/v1/showapi/retrieve-number-episodes/{show_id}/{season_number}",
         response_model=int)
 async def retrieve_number_of_episodes(show_id, season_number: int, maze = Depends(get_maze_service)):
     try:
         output = maze.retrieve_number_of_episodes(show_id, season_number)
         return output
     except APIError as e:
+        
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.get("/showapi/retrieve-episodes/{show_id}/{season_id}/{episodeID}")
+@router.get("/api/v1/showapi/retrieve-episodes/{show_id}/{season_id}/{episodeID}")
 async def retrieve_episodes_data(episodeID, show_id, season_id, maze = Depends(get_maze_service)):
     try:
         output = maze.retrieve_episode(episodeID, show_id, season_id)

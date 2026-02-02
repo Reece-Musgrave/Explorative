@@ -28,7 +28,7 @@ class UserInput(BaseModel):
     full_name: str
     password: str
 
-@router.post("/users/login")
+@router.post("/api/v1/users/login")
 async def login_for_access_token(
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -62,7 +62,7 @@ async def login_for_access_token(
     
     return Token(access_token=access_token, token_type="bearer")
 
-@router.post("/users/refresh")
+@router.post("/api/v1/users/refresh")
 async def refresh_token(request: Request, db=Depends(get_database)) -> Token:
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
@@ -87,18 +87,18 @@ async def refresh_token(request: Request, db=Depends(get_database)) -> Token:
 
     return Token(access_token=access_token, token_type="bearer")
 
-@router.get("/users/check-email/{email}")
+@router.get("/api/v1/users/check-email/{email}")
 async def check_email(email, db = Depends(get_database)):
     output = db.check_email(email)
     return {"available": not output}
 
 
-@router.get("/users/check-username/{username}")
+@router.get("/api/v1/users/check-username/{username}")
 async def check_username(username, db = Depends(get_database)):
     output = db.check_username(username)
     return {"available": not output}
 
-@router.post("/users/register", status_code=204)
+@router.post("/api/v1/users/register", status_code=204)
 async def register_user(data: UserInput, db = Depends(get_database)):
     try:
         exists = db.check_email(data.email)
@@ -109,7 +109,7 @@ async def register_user(data: UserInput, db = Depends(get_database)):
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409)
 
-@router.post("/users/logout")
+@router.post("/api/v1/users/logout")
 async def logout_user():
     response = JSONResponse(content={"detail": "Logged out"})
     response.delete_cookie(

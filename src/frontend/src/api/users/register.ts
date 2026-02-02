@@ -10,7 +10,7 @@ export async function register(input: RegisterInput): Promise<number> {
         full_name: input.full_name,
         password: input.password,
     })
-    const request: RequestInfo = new Request(`${API_BASE_URL}/users/register`, {
+    const request: RequestInfo = new Request(`${API_BASE_URL}/api/v1/users/register`, {
         method: 'POST',
         headers: headers,
         body: body
