@@ -11,6 +11,11 @@ class RetrieveShowOutput(BaseModel):
     maze_id: int 
     url: str
 
+class NShowOutput(BaseModel):
+    id: int
+    name: str
+    maze_id: int 
+
 class InsertShowInput(BaseModel):
     name: str
     maze_id: int 
@@ -57,6 +62,19 @@ async def retrieve_show(show_name, database = Depends(get_database)):
         maze_id=output["tvmaze_id"],
         url=output["poster_url"]
     )
+
+@router.get("/api/v1/database/retrieve-n-shows/{show_string}")
+async def retrieve_n_shows(show_string, database = Depends(get_database)):
+    output = database.retrieve_n_shows(show_string, 5)
+
+    return [
+        NShowOutput(
+            id=r[0],
+            name=r[1],
+            maze_id=r[2],
+        )
+        for r in output
+    ]
 
 @router.get(
         "/api/v1/database/retrieve-episode-air_date",

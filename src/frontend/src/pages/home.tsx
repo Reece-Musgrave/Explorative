@@ -21,7 +21,7 @@ import { retrieveShow } from "../api/shows/shows.ts"
 import { type RetrieveShowOutput, type SelectionString } from "../api/shows/types.ts";
 import { useState, useEffect } from 'react';
 import { Alert } from "@/components/ui/alert.tsx"
-
+import { useAutocomplete } from "../components/use-autocomplete.tsx"
 
 export function Home() {
 
@@ -37,6 +37,7 @@ export function Home() {
     const [valueEpisode, setValueEpisode] = useState("");
     const [selectionString, setSelectionString] = useState<SelectionString | null>(null);
     const [errorPopup, setErrorPopup] = useState(false)
+    const [showSuggestions, setShowSuggestions] = useState(false)
 
     const handleSearchClick = async () => {
       setShowSeasons(true);
@@ -53,6 +54,11 @@ export function Home() {
       setValueEpisode("");
       setShowEpisodes(false);
     };
+
+    const suggestions = useAutocomplete(showName)
+      useEffect(() => {
+        setShowSuggestions(suggestions.length > 0)
+      }, [suggestions])
 
     const episodeOptions =
       showData && valueSeason
@@ -88,15 +94,32 @@ export function Home() {
     }, [errorPopup]);
 
     return (
-    <div className="bg-background text-foreground min-h-screen" >
-        <Navbar />
-        <div className="flex flex-col md:min-h-30 items-center justify-center gap-y-3">
-          <div className="flex w-full max-w-sm items-center justify-center gap-2">
+      <div className="bg-background text-foreground min-h-screen" >
+          <Navbar />
+          <div className="flex flex-col md:min-h-30 items-center justify-center gap-y-3">
+          <div className="relative flex w-full max-w-sm items-center justify-center gap-2">
             <Input 
               placeholder="What are you looking for?" 
               value={showName} 
               onChange={(e) => setShowName(e.target.value)} 
             />
+
+            {showSuggestions && (
+              <ul className="absolute top-full left-0 right-0 border mt-1 rounded bg-white shadow-md max-h-40 overflow-y-auto z-50">
+                {suggestions.map((show) => (
+                  <li 
+                    key={show.id} 
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setShowName(show.name);
+                      setShowSuggestions(false);}} 
+                  >
+                    {show.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+
             <Button type="button" variant="outline" onClick={handleSearchClick}>
               Search
             </Button>

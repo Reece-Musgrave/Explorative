@@ -14,3 +14,9 @@ export interface SelectionString {
     season_number: number;
     episode_number: number;
 }
+
+export interface AutoCompleteOutput {
+    id: number;
+    name: string;
+    maze_id: number;
+}

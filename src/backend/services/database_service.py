@@ -39,6 +39,15 @@ class Database:
             (show_name,)
         )
         return curr.fetchone()
+
+    def retrieve_n_shows(self, show_string, n):
+        conn = self._get_connection()
+        curr = conn.cursor()
+        curr.execute(
+            "SELECT id, name, tvmaze_id FROM shows where name LIKE ? COLLATE NOCASE ORDER BY name ASC LIMIT ?",
+            (f"{show_string}%", n)
+        )
+        return curr.fetchall()
     
     def retrieve_episode_timestamp(self, show_name, season_number, episode_number):
         conn = self._get_connection()
@@ -129,7 +138,7 @@ class Database:
             (show_name, season_number)
         )
         return curr.fetchall()
-    
+
     def reset(self):
         conn = self._get_connection()
         curr = conn.cursor()
