@@ -1,39 +1,25 @@
-from typing import Annotated
+from datetime import timedelta
 from fastapi import Depends, HTTPException, status, APIRouter, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
-from backend.models.token import Token
-from backend.models.user import User
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from backend.auth.dependencies import get_current_active_user
 from backend.auth.hashing import get_password_hash
+from backend.auth.jwt import create_access_token
 from backend.auth.service import authenticate_user
 from backend.auth.service import get_user
-from backend.auth.jwt import create_access_token
-from backend.auth.dependencies import get_current_active_user
-from backend.services.user_database_service import get_database
-from datetime import timedelta
-from pydantic import BaseModel
-import sqlite3
-import os
+from backend.core.config import settings
+from backend.db.session import get_db
+from backend.schemas.token import Token
+from backend.schemas.user import UserInput
+from backend.services.user_database_service import get_email, get_username, create_user
 import jwt
 
 router = APIRouter()
 
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
-SECRET_KEY = os.environ["SECRET_KEY"]
-ALGORITHM = "HS256"
-
-class UserInput(BaseModel):
-    username: str
-    email: str
-    full_name: str
-    password: str
-
 @router.post("/api/v1/users/login")
-async def login_for_access_token(
-    response: Response,
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db = Depends(get_database),  
-) -> Token:
+async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> Token:
     user = authenticate_user(db, form_data.username, form_data.password)  
     if not user:
         raise HTTPException(
@@ -41,7 +27,7 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
@@ -63,13 +49,14 @@ async def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 @router.post("/api/v1/users/refresh")
-async def refresh_token(request: Request, db=Depends(get_database)) -> Token:
+async def refresh_token(request: Request, db: Session = Depends(get_db)) -> Token:
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Missing refresh token")
     
     try:
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
         username = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid refresh token")
@@ -80,7 +67,7 @@ async def refresh_token(request: Request, db=Depends(get_database)) -> Token:
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
@@ -88,25 +75,26 @@ async def refresh_token(request: Request, db=Depends(get_database)) -> Token:
     return Token(access_token=access_token, token_type="bearer")
 
 @router.get("/api/v1/users/check-email/{email}")
-async def check_email(email, db = Depends(get_database)):
-    output = db.check_email(email)
+async def check_email(email, db: Session = Depends(get_db)):
+    output = get_email(db, email)
     return {"available": not output}
 
 
 @router.get("/api/v1/users/check-username/{username}")
-async def check_username(username, db = Depends(get_database)):
-    output = db.check_username(username)
+async def check_username(username, db: Session = Depends(get_db)):
+    output = get_username(db, username)
     return {"available": not output}
 
 @router.post("/api/v1/users/register", status_code=204)
-async def register_user(data: UserInput, db = Depends(get_database)):
+async def register_user(data: UserInput, db: Session = Depends(get_db)):
     try:
-        exists = db.check_email(data.email)
+        exists = get_email(db, data.email)
         if exists:
             raise HTTPException(status_code=409, detail="Email already exists")
         password_hash = get_password_hash(data.password)
-        db.register_user(data.username, data.email, data.full_name, password_hash)
-    except sqlite3.IntegrityError:
+        create_user(db, data.username, data.email, data.full_name, password_hash)
+    except IntegrityError:
+        db.rollback()
         raise HTTPException(status_code=409)
 
 @router.post("/api/v1/users/logout")

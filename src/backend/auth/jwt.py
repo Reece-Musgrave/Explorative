@@ -1,9 +1,6 @@
 import jwt
 from datetime import datetime, timedelta, timezone
-import os
-
-SECRET_KEY = os.environ["SECRET_KEY"]
-ALGORITHM = "HS256"
+from backend.core.config import settings
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
@@ -12,5 +9,5 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt

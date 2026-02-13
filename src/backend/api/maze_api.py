@@ -1,20 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from backend.schemas.database import ShowOutput, EpisodeOutput
 from backend.services.maze_service import APIError, get_maze_service
 
 router = APIRouter()
-
-class ShowOutput(BaseModel):
-    id: int
-    name: str
-    poster_url: str
-
-class EpisodeOutput(BaseModel):
-    id: int
-    episode_number: int
-    title: str
-    air_date: str 
-
 
 @router.get("/api/v1/showapi/retrieve-show/{show_name}")
 async def retrieve_show_data(show_name, maze = Depends(get_maze_service)):

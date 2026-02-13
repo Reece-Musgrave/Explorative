@@ -1,29 +1,34 @@
-from backend.models.user import UserInDB
+from backend.schemas.user import UserInDB
 from backend.auth.hashing import verify_password
-from backend.services.user_database_service import UserDatabase
+from sqlalchemy.orm import Session
+from backend.models.users import Users
 
 
-def get_user(db: UserDatabase, username: str) -> UserInDB | None:
-    conn = db._get_connection()
-    cur = conn.execute(
-        "SELECT * FROM users WHERE username = ?",
-        (username,)
+def get_user(db: Session, username: str) -> UserInDB | None:
+    user = (
+        db.query(Users)
+        .filter(Users.username == username)
+        .first()
     )
-    row = cur.fetchone()
-    if row is None:
+
+    if user is None:
         return None
+
     return UserInDB(
-        username=row["username"],
-        email=row["email"],
-        full_name=row["full_name"],
-        disabled=row["disabled"],
-        hashed_password=row["password_hash"],
+        username=user.username,
+        email=user.email,
+        full_name=user.full_name,
+        disabled=user.disabled,
+        hashed_password=user.hashed_password,
     )
 
-def authenticate_user(db: UserDatabase, username: str, password: str) -> UserInDB | bool:
+def authenticate_user(db: Session, username: str, password: str) -> Users | None:
     user = get_user(db, username)
-    if not user:
-        return False
+
+    if user is None:
+        return None
+
     if not verify_password(password, user.hashed_password):
-        return False
+        return None
+
     return user

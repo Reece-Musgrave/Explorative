@@ -1,166 +1,108 @@
-'''
-This class provides functionality for the management and operation of the SQLite Databases. 
-Methods include:
-    1/ Init - initialise connection to sqlite database 
-    2/ RetrieveShow - Retrieve a show by name input - return: Name, Img URL or 'None'
-    3/ RetrieveEpisodeTimestamp - Given Show, Season and Episode, return timestamp of episode air date (PRIMARY USE CASE METHOD) or returns 'None'
-    4/ RefreshShow - When called, will delete all table entries, and refill using latest API data
-    5/ InsertShow - Method for inserting a new show
-    6/ InsertSeason - Method for inserting a new season
-    7/ InsertEpisode - Method for inserting a new episode 
-    8/ RetrieveSeasons - Method for returning all seasons of a show 
-    9/ RetrieveEpisodes - Method for returning all episodes of a season 
-
-'''
-import sqlite3
 import datetime
+from sqlalchemy.orm import Session
+from backend.models.shows import Shows
+from backend.models.seasons import Seasons
+from backend.models.episodes import Episodes
 
-class Database: 
-    def __init__(self, db_path = None, connection = None):
-        if connection != None:
-            self.conn = connection
-        else:
-            self.db_path = db_path
-        self._row_factory = sqlite3.Row
+def get_show(db: Session, show_name: str):
+    return (
+        db.query(Shows)
+        .filter(Shows.name.ilike(show_name))
+        .first()
+    )
+
+def get_n_shows(db: Session, show_string: str, n: int):
+    return (
+        db.query(Shows.id, Shows.name, Shows.tvmaze_id)
+        .filter(Shows.name.ilike(f"{show_string}%"))
+        .order_by(Shows.name.asc())
+        .limit(n)
+        .all()
+    )
+
+def get_episode_timestamp(db: Session, show_string: str, season_number: int, episode_number: int):
+    episode = (
+        db.query(Episodes)
+        .join(Episodes.seasons)
+        .join(Seasons.shows)
+        .filter(Shows.name == show_string)
+        .filter(Seasons.season_number == season_number)
+        .filter(Episodes.episode_number == episode_number)
+        .first()
+    )
+
+    return episode.air_date if episode else None
+      
+def create_show(db: Session, show_name: str, maze_id: int, poster_url: str):
+    new_show = Shows(
+        name=show_name,
+        tvmaze_id=maze_id,
+        poster_url=poster_url,
+        last_refreshed=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    )
+
+    db.add(new_show)
+    db.commit()
+
+def create_season(db: Session, show_id: int, season_number: int, number_episodes: int):
+    new_season = Seasons(
+        show_id=show_id,
+        season_number=season_number,
+        number_episodes=number_episodes
+    )
+    db.add(new_season)
+    db.commit()
+
+def create_episodes(db: Session, season_id: int, episode_number: int, title: str, air_date: int):
+    new_episode = Episodes(
+        season_id=season_id,
+        episode_number=episode_number,
+        title=title,
+        air_date=air_date
+    )
+    db.add(new_episode)
+    db.commit()
+
+def get_seasons(db: Session, show_id: str):
+    return (
+        db.query(
+            Seasons.id,
+            Seasons.season_number,
+            Seasons.number_episodes
+        )
+        .filter(Seasons.show_id == show_id)
+        .all()
+    )
+
+def get_single_season(db: Session, show_id: int, season_number: int):
+    return (
+        db.query(Seasons.id)
+        .filter(Seasons.show_id == show_id)
+        .filter(Seasons.season_number == season_number)
+        .first()
+    )
+
+def get_episodes_by_season(db: Session, show_name: str, season_number: int):
+    return (
+        db.query(
+            Episodes.id,
+            Episodes.episode_number,
+            Episodes.title,
+            Episodes.air_date
+        )
+        .join(Episodes.seasons)
+        .join(Seasons.shows)
+        .filter(
+            Shows.name == show_name,
+            Seasons.season_number == season_number
+        )
+        .order_by(Episodes.episode_number.asc())
+        .all()
+    )
+def reset(db: Session):
+    db.query(Episodes).delete()
+    db.query(Seasons).delete()
+    db.query(Shows).delete()
     
-    def _get_connection(self):
-        if hasattr(self, "conn"):
-            conn = self.conn
-        else:
-            conn = sqlite3.connect(self.db_path)
-        conn.row_factory = self._row_factory
-        return conn
-
-    def retrieve_show(self, show_name):
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            "SELECT id, name, tvmaze_id, poster_url FROM shows WHERE name = ? COLLATE NOCASE",
-            (show_name,)
-        )
-        return curr.fetchone()
-
-    def retrieve_n_shows(self, show_string, n):
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            "SELECT id, name, tvmaze_id FROM shows where name LIKE ? COLLATE NOCASE ORDER BY name ASC LIMIT ?",
-            (f"{show_string}%", n)
-        )
-        return curr.fetchall()
-    
-    def retrieve_episode_timestamp(self, show_name, season_number, episode_number):
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            """
-            SELECT e.air_date
-            FROM episodes e
-            JOIN seasons s ON e.season_id = s.id
-            JOIN shows sh ON s.show_id = sh.id
-            WHERE sh.name = ?
-            AND s.season_number = ?
-            AND e.episode_number = ?
-            """, 
-            (show_name, int(season_number), int(episode_number))
-        )
-        row = curr.fetchone()
-        return row["air_date"] if row else None      
-
-    def insert_show(self, show_name, maze_id, poster_url):
-        last_refreshed = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            """
-            INSERT INTO shows (name, tvmaze_id, poster_url, last_refreshed)
-            VALUES (?, ?, ?, ?)
-            """,
-            (show_name, maze_id, poster_url, last_refreshed)
-        )
-        conn.commit()
-
-
-    def insert_season(self, show_id, season_number, number_episodes):
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            """
-            INSERT INTO seasons (show_id, season_number, number_episodes)
-            VALUES (?, ?, ?)
-            """,
-            (show_id, season_number, number_episodes)
-        )
-        conn.commit()
-
-    def insert_episode(self, season_id, episode_number, title, air_date):
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            """
-            INSERT INTO episodes (season_id, episode_number, title, air_date)
-            VALUES (?, ?, ?, ?)
-            """,
-            (season_id, episode_number, title, air_date)    
-        )
-        conn.commit()
-
-    def retrieve_seasons(self, show_id):
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            "SELECT id, season_number, number_episodes FROM seasons WHERE show_id = ?",
-            (show_id,)
-        )
-        return curr.fetchall()
-    
-    def retrieve_single_season(self, show_id, season_number):
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            "SELECT id FROM seasons WHERE show_id = ? AND season_number = ?",
-            (show_id,season_number)
-        )
-        return curr.fetchone()
-
-    def retrieve_episodes_by_season(self, show_name, season_number):
-        conn = self._get_connection()
-        curr = conn.cursor()
-        curr.execute(
-            """
-            SELECT e.id, e.episode_number, e.title, e.air_date
-            FROM episodes e
-            JOIN seasons s ON e.season_id = s.id
-            JOIN shows sh ON s.show_id = sh.id
-            WHERE sh.name = ? AND s.season_number = ?
-            ORDER BY e.episode_number
-            """,
-            (show_name, season_number)
-        )
-        return curr.fetchall()
-
-    def reset(self):
-        conn = self._get_connection()
-        curr = conn.cursor()
-
-        curr.execute("PRAGMA foreign_keys = OFF;")
-
-        curr.execute("DELETE FROM episodes;")
-        curr.execute("DELETE FROM seasons;")
-        curr.execute("DELETE FROM shows;")
-
-        try:
-            curr.execute("DELETE FROM sqlite_sequence WHERE name = 'episodes';")
-            curr.execute("DELETE FROM sqlite_sequence WHERE name = 'seasons';")
-            curr.execute("DELETE FROM sqlite_sequence WHERE name = 'shows';")
-        except sqlite3.OperationalError:
-            pass
-
-        curr.execute("PRAGMA foreign_keys = ON;")
-
-        conn.commit()
-
-        print("Database reset completed.")
-
-def get_database():
-    return Database("./backend/database/tv_shows/tvshows.db")
+    db.commit()
+    print("Database reset completed")

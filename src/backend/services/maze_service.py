@@ -1,13 +1,3 @@
-'''
-Class containing all methods for interacting with the TV Maze API, for retrieval of tv-show meta data
-Methods Include:
-    1/ Call API to retrieve show data for given string 
-    2/ Call API to retrieve number of seasons 
-    3/ Call API to retrieve number of episodes in a given season
-    4/ Call API to find episode details 
-
-'''
-
 import requests 
 
 class APIError(Exception):
