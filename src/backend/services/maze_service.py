@@ -28,9 +28,11 @@ class ShowAPI:
         response = requests.get(f"{self.base_url}/shows/{show_id}/seasons")
         if response.status_code == 404:
             raise APIError(f"Could not retrieve individual season data for {show_id} / {season_number}")
-        
         data = response.json()
-        return data[season_number - 1]["episodeOrder"]
+        if data[season_number - 1]["episodeOrder"] != None:
+            return data[season_number - 1]["episodeOrder"]
+        else:
+            raise APIError(f"Could not retrieve individual season data for {show_id} / {season_number}")
 
     def retrieve_episode(self, episode_id, show_id, season_id): 
         response = requests.get(f"{self.base_url}/shows/{show_id}/episodebynumber?season={season_id}&number={episode_id}")

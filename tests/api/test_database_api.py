@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from backend.main import app
-from backend.services.database_service import get_database
-import sqlite3
+from backend.db.session import get_db
+from sqlalchemy.exc import IntegrityError
 
 def test_retrieve_show_success(mocker):
     mock_db = mocker.MagicMock()
@@ -11,7 +11,7 @@ def test_retrieve_show_success(mocker):
         "tvmaze_id": 169,
         "poster_url": "http://image.url"
     }
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
     
     response = client.get("/api/v1/database/retrieve-show/Breaking%20Bad")
@@ -28,7 +28,7 @@ def test_retrieve_show_success(mocker):
 def test_retrieve_show_failure(mocker):
     mock_db = mocker.MagicMock()
     mock_db.retrieve_show.return_value = None
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
 
     response = client.get("/api/v1/database/retrieve-show/The Walking Dead")
@@ -39,7 +39,7 @@ def test_retrieve_show_failure(mocker):
 def test_retrieve_episode_air_date_success(mocker):
     mock_db = mocker.MagicMock()
     mock_db.retrieve_episode_timestamp.return_value = "2023-01-15"
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
     
     response = client.get(
@@ -58,7 +58,7 @@ def test_retrieve_episode_air_date_success(mocker):
 def test_retrieve_episode_air_date_failure(mocker):
     mock_db = mocker.MagicMock()
     mock_db.retrieve_episode_timestamp.return_value = None
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
     
     response = client.get(
@@ -75,7 +75,7 @@ def test_retrieve_episode_air_date_failure(mocker):
 
 def test_insert_show_success(mocker):
     mock_db = mocker.MagicMock()
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
 
     response = client.put(
@@ -92,8 +92,8 @@ def test_insert_show_success(mocker):
 
 def test_insert_show_failure(mocker):
     mock_db = mocker.MagicMock()
-    mock_db.insert_show.side_effect = sqlite3.IntegrityError
-    app.dependency_overrides[get_database] = lambda: mock_db
+    mock_db.insert_show.side_effect = IntegrityError
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
 
     response = client.put(
@@ -111,7 +111,7 @@ def test_insert_show_failure(mocker):
 
 def test_insert_season_success(mocker):
     mock_db = mocker.MagicMock()
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
 
     response = client.put(
@@ -128,8 +128,8 @@ def test_insert_season_success(mocker):
 
 def test_insert_season_failure(mocker):
     mock_db = mocker.MagicMock()
-    mock_db.insert_season.side_effect = sqlite3.IntegrityError
-    app.dependency_overrides[get_database] = lambda: mock_db 
+    mock_db.insert_season.side_effect = IntegrityError()
+    app.dependency_overrides[get_db] = lambda: mock_db 
     client = TestClient(app)
 
     response = client.put(
@@ -146,7 +146,7 @@ def test_insert_season_failure(mocker):
 
 def test_insert_episode_success(mocker):
     mock_db = mocker.MagicMock()
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
 
     response = client.put(
@@ -164,8 +164,8 @@ def test_insert_episode_success(mocker):
 
 def test_insert_episode_failure(mocker):
     mock_db = mocker.MagicMock()
-    mock_db.insert_episode.side_effect = sqlite3.IntegrityError
-    app.dependency_overrides[get_database] = lambda: mock_db
+    mock_db.insert_episode.side_effect = IntegrityError()
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
 
     response = client.put(
@@ -184,7 +184,7 @@ def test_insert_episode_failure(mocker):
 def test_retrieve_season_success(mocker):
     mock_db = mocker.MagicMock()
     mock_db.retrieve_seasons.return_value = [{"id": "6", "season_number":"5", "number_episodes":"10"}]
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
 
     response = client.get("/api/v1/database/retrieve-season/6")
@@ -200,7 +200,7 @@ def test_retrieve_season_success(mocker):
 def test_retrieve_season_failure(mocker):
     mock_db = mocker.MagicMock()
     mock_db.retrieve_seasons.return_value = None
-    app.dependency_overrides[get_database] = lambda: mock_db
+    app.dependency_overrides[get_db] = lambda: mock_db
     client = TestClient(app)
 
     response = client.get("/api/v1/database/retrieve-season/6")

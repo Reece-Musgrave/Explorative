@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 from backend.main import app
 from backend.services.maze_service import APIError, get_maze_service
 
-
 def test_retrieve_show_data_success(mocker):    
     mock_response = mocker.MagicMock() 
     mock_response.retrieve_show.return_value = (10, "Example Show", "example_url.com")

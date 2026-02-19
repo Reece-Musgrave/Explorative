@@ -1,7 +1,6 @@
 from backend.services.maze_service import ShowAPI, APIError
 import pytest
 
-
 def test_retrieve_show_returns_show_id(requests_mock):
     api = ShowAPI()
     example_show = "The Walking Dead"

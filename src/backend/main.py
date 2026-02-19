@@ -5,7 +5,6 @@ FastAPI Entry Point
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.core.config import settings
 from backend.api.maze_api import router as maze_router
 from backend.api.database_api import router as database_router
 from backend.api.auth_api import router as auth_router
@@ -15,7 +14,7 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:8080",
-    "http://localhost:5173",  # Vite default
+    "http://localhost:5173",  
 ]
 
 app.include_router(maze_router, tags=["maze"])
