@@ -27,3 +27,7 @@ Connect to db:
 Run Test Suite
 Backend Test Suite: pytest 
 
+#
+containers
+docker compose build --no-cache
+docker compose up 
