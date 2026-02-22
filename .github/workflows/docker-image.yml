@@ -71,13 +71,13 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd ~/app
 
-            echo "${GHCR_TOKEN}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${GHCR_TOKEN}" | docker login ghcr.io -u reece-musgrave --password-stdin
 
             echo "Pulling latest images..."
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
 
             echo "Restarting containers..."
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
             echo "Deployment complete."
           EOF
