@@ -29,21 +29,24 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_TOKEN }}
 
+      - name: Set lowercase repo owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
       - name: Build Backend Image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/backend:latest ./src/backend
+          docker build -t ghcr.io/${OWNER_LC}/backend:latest ./src/backend
 
       - name: Push Backend Image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/backend:latest
+          docker push ghcr.io/${OWNER_LC}/backend:latest
 
       - name: Build Frontend Image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/frontend:latest ./src/frontend
+          docker build -t ghcr.io/${OWNER_LC}/frontend:latest ./src/frontend
 
       - name: Push Frontend Image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/frontend:latest
+          docker push ghcr.io/${OWNER_LC}/frontend:latest
 
 
   deploy:
