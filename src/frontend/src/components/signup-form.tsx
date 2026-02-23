@@ -33,7 +33,7 @@ export function SignupForm({
           e.preventDefault();
           try {
             if (password == passwordConf){
-              setUsername(full_name)
+              const username = full_name;
               const data = await register({ username, email, full_name, password });
               const signin = await loginUser({ username, password });
                     login(signin.access_token); 
@@ -43,8 +43,7 @@ export function SignupForm({
             console.error(err);
           }
   };
-    
-  const [username, setUsername] = useState("");
+  
   const [password, setPassword] = useState("");
   const [passwordConf, setPasswordConf] = useState("");
   const [email, setEmail] = useState("");

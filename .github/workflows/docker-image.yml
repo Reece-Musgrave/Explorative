@@ -79,5 +79,9 @@ jobs:
             echo "Restarting containers..."
             docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
+            echo "Cleaning up old images"
+            docker image prune -a -f
+            docker builder prune -a -f
+
             echo "Deployment complete."
           EOF
