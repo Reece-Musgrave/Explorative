@@ -10,7 +10,6 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { useAuth } from "../../context/authContext";
-import { API_BASE_URL } from "../../api/client";
 import logo from "../../assets/logo.png";
 
 export default function Navbar() {
@@ -18,7 +17,7 @@ export default function Navbar() {
   const { accessToken, logout} = useAuth()
 
   const handleLogout = async () => {
-    await fetch(`${API_BASE_URL}/api/v1/users/logout`, {
+    await fetch(`/api/v1/users/logout`, {
       method: "POST",
       credentials: "include",  
     });

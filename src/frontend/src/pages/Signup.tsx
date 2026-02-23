@@ -1,4 +1,5 @@
 import { SignupForm } from "../components/signup-form"
+import logo from "../assets/logo.png";
 
 export default function SignupPage() {
   return (
@@ -6,11 +7,7 @@ export default function SignupPage() {
       <div className="flex w-full max-w-sm flex-col gap-6">
         <a href="/" className="flex items-center gap-2 self-center font-medium">
           <div className="text-primary-foreground flex size-15 items-center justify-center rounded-md">
-            <img
-                  alt=""
-                  src="src/assets/logo.png"
-                  className="h-auto w-1500"
-            />
+            <img src={logo} className="h-auto w-1500"/>
           </div>
           ReYapp
         </a>
