@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { API_BASE_URL } from "../api/client";
 
 interface AuthContextType {
   accessToken: string | null;
@@ -15,7 +14,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/users/refresh`, {
+        const res = await fetch(`/api/v1/users/refresh`, {
           method: "POST",
           credentials: "include", 
         });
