@@ -8,5 +8,5 @@ class Users(Base):
     username = Column(String, nullable=False)
     email = Column(String)
     full_name = Column(String)
-    hashed_password = Column(String)
+    password_hash = Column(String, nullable=False)
     disabled = Column(Boolean, default=False, nullable=False)

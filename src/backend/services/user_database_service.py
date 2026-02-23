@@ -23,7 +23,7 @@ def create_user(db: Session, username: str, email: str, full_name: str, password
         username=username,
         email=email,
         full_name=full_name,
-        hashed_password=password_hash
+        password_hash=password_hash
     )
     db.add(new_user)
     try:
