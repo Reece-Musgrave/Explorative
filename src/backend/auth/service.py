@@ -19,7 +19,7 @@ def get_user(db: Session, username: str) -> UserInDB | None:
         email=user.email,
         full_name=user.full_name,
         disabled=user.disabled,
-        hashed_password=user.hashed_password,
+        hashed_password=user.password_hash,
     )
 
 def authenticate_user(db: Session, username: str, password: str) -> Users | None:
@@ -28,7 +28,7 @@ def authenticate_user(db: Session, username: str, password: str) -> Users | None
     if user is None:
         return None
 
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.password_hash):
         return None
 
     return user
