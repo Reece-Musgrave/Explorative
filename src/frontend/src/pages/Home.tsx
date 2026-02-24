@@ -94,7 +94,7 @@ export function Home() {
     }, [errorPopup]);
 
     return (
-      <div className="bg-background text-foreground min-h-screen" >
+      <div className="bg-background bg-gray-50 text-foreground min-h-screen" >
           <Navbar />
           <div className="flex flex-col md:min-h-30 items-center justify-center gap-y-3">
           <div className="relative flex w-full max-w-sm items-center justify-center gap-2">

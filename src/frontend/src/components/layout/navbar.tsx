@@ -25,8 +25,8 @@ export default function Navbar() {
   }
 
   return (
-    <header className="bg-white">
-      <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
+    <header className="bg-gray-50">
+      <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between py-2 px-6 lg:px-8" >
         <div className="flex lg:flex-1">
           <a href="#" className="-m-1.5 p-1.5">
             <span className="sr-only">ReYapp</span>
@@ -44,7 +44,7 @@ export default function Navbar() {
           </button>
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
-         <a href="#" className="text-sm/6 font-semibold text-gray-900">
+         <a href="/" className="text-sm/6 font-semibold text-gray-900">
             Search
           </a>
           <a href="#" className="text-sm/6 font-semibold text-gray-900">
