@@ -134,7 +134,7 @@ export function Episode() {
                     </div>
                 </div>
                 {/* Right Column */}
-                <div className="flex flex-col h-[calc(100vh-40px)] sticky top-0 border-l border-t border-gray-200">
+                <div className="flex flex-col h-[calc(100vh-40px)] sticky top-[40px] border-l border-gray-200">
                 {/* Chat Header */}
                 <div className="p-4 border-b border-gray-200 bg-white">
                     <div className="flex items-center gap-2">

@@ -90,8 +90,8 @@ def get_episodes_by_season(db: Session, show_name: str, season_number: int):
             Episodes.title,
             Episodes.air_date
         )
-        .join(Episodes.seasons)
-        .join(Seasons.shows)
+        .join(Seasons, Seasons.id == Episodes.season_id)
+        .join(Shows, Shows.id == Seasons.show_id)
         .filter(
             Shows.name == show_name,
             Seasons.season_number == season_number
@@ -99,6 +99,7 @@ def get_episodes_by_season(db: Session, show_name: str, season_number: int):
         .order_by(Episodes.episode_number.asc())
         .all()
     )
+
 def reset(db: Session):
     db.query(Episodes).delete()
     db.query(Seasons).delete()

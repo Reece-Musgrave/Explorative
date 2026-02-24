@@ -1,5 +1,5 @@
 
-
+{/* Object to store frontend Show data*/}
 export interface RetrieveShowOutput {
     name: string;
     maze_id: number;
@@ -8,11 +8,15 @@ export interface RetrieveShowOutput {
     episodes: [number, number, number][];
 }
 
-export interface SelectionString {
-    name: string;
-    maze_id: number;
-    season_number: number;
+{/* Object to store frontend Episode data */}
+export interface RetrieveEpisodeOutput{
+    episode_id: number;
     episode_number: number;
+    episode_title: string;
+    episode_airdata: string;
+    show_name: string;
+    show_image_url: string;
+    season_number: number;
 }
 
 export interface AutoCompleteOutput {

@@ -18,7 +18,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { retrieveShow } from "../api/shows/shows.ts"
-import { type RetrieveShowOutput, type SelectionString } from "../api/shows/types.ts";
+import { retrieveEpisode } from "../api/shows/episodes.ts"
+import { type RetrieveShowOutput, type RetrieveEpisodeOutput } from "../api/shows/types.ts";
 import { useState, useEffect } from 'react';
 import { Alert } from "@/components/ui/alert.tsx"
 import { useAutocomplete } from "../components/use-autocomplete.tsx"
@@ -35,15 +36,17 @@ export function Home() {
     const [valueSeason, setValueSeason] = useState<number | null>(null);
     const [openEpisode, setOpenEpisode] = useState(false);
     const [valueEpisode, setValueEpisode] = useState("");
-    const [selectionString, setSelectionString] = useState<SelectionString | null>(null);
+    const [selectionString, setSelectionString] = useState<RetrieveEpisodeOutput | null>(null);
     const [errorPopup, setErrorPopup] = useState(false)
     const [showSuggestions, setShowSuggestions] = useState(false)
+    const [valueURL, setValueURL] = useState("");
 
     const handleSearchClick = async () => {
       setShowSeasons(true);
       try {
         const data = await retrieveShow(showName);
         setShowData(data);
+        setValueURL(data.url)
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Something went wrong");
@@ -54,6 +57,11 @@ export function Home() {
       setValueEpisode("");
       setShowEpisodes(false);
     };
+
+    const handleSelection = async (episodeNumber: string) => {
+      const data = await retrieveEpisode(showName, Number(valueSeason), Number(episodeNumber), valueURL);
+      setSelectionString(data)
+    }
 
     const suggestions = useAutocomplete(showName)
       useEffect(() => {
@@ -97,7 +105,7 @@ export function Home() {
       <div className="bg-background bg-gray-50 text-foreground min-h-screen" >
           <Navbar />
           <div className="flex flex-col md:min-h-30 items-center justify-center gap-y-3">
-          <div className="relative flex w-full max-w-sm items-center justify-center gap-2">
+          <div className="relative flex w-full max-w-sm items-center justify-center gap-2 bg-white">
             <Input 
               placeholder="What are you looking for?" 
               value={showName} 
@@ -210,6 +218,7 @@ export function Home() {
                             onSelect={(currentValue) => {
                               setValueEpisode(currentValue);
                               setOpenEpisode(false);
+                              handleSelection(currentValue);
                               setShowGo(true);
                             }}
                           >
@@ -232,12 +241,6 @@ export function Home() {
                 )}
                 {showGo && (
                   <Button variant="outline" onClick={() => {
-                    setSelectionString({
-                      name: showData?.name ?? "",
-                      maze_id: showData?.maze_id ?? 0,
-                      season_number: valueSeason ?? 0, 
-                      episode_number: Number(valueEpisode)
-                    });
                     console.log(selectionString);
                   }}>Let's Go!</Button>
                 )}
