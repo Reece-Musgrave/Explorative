@@ -23,9 +23,11 @@ import { type RetrieveShowOutput, type RetrieveEpisodeOutput } from "../api/show
 import { useState, useEffect } from 'react';
 import { Alert } from "@/components/ui/alert.tsx"
 import { useAutocomplete } from "../components/use-autocomplete.tsx"
+import { useNavigate } from "react-router-dom";
 
 export function Home() {
 
+    const navigate = useNavigate();
     const [error, setError] = useState<string | null>(null);
     const [showName, setShowName] = useState("");
     const [showData, setShowData] = useState<RetrieveShowOutput | null>(null);
@@ -241,7 +243,7 @@ export function Home() {
                 )}
                 {showGo && (
                   <Button variant="outline" onClick={() => {
-                    console.log(selectionString);
+                    navigate("/episode", { state: selectionString });
                   }}>Let's Go!</Button>
                 )}
             </div>

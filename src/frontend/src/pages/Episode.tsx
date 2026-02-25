@@ -1,10 +1,24 @@
 import Navbar from "../components/layout/navbar.tsx"
 import { useState } from "react"
+import { useLocation } from "react-router-dom";
+import { type RetrieveEpisodeOutput } from "../api/shows/types.ts";
 
 export function Episode() {
 
     const [sentimentOpen, setSentimentOpen] = useState(true)
     const [communityOpen, setCommunityOpen] = useState(false)
+    const location = useLocation();
+    const episodeData: RetrieveEpisodeOutput = location.state;
+
+    const airDate = new Date(episodeData.episode_airdata);
+    const today = new Date();
+    const diffDays = Math.floor((today.getTime() - airDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    const daysAgoLabel = diffDays === 0 
+    ? "Today" 
+    : diffDays === 1 
+    ? "Yesterday" 
+    : `${diffDays} days ago`;
 
     return (
         <div className="bg-gray-50 min-h-screen">
@@ -14,17 +28,17 @@ export function Episode() {
                 {/* Left Column */}
                 <div className="flex flex-col gap-4 p-6 overflow-y-auto">
                     <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-                        <img className="absolute inset-0 w-full h-full object-cover" src={"https://static.tvmaze.com/uploads/images/medium_portrait/501/1253519.jpg"}/>
+                        <img className="absolute inset-0 w-full h-full object-cover" src={episodeData.show_image_url}/>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         <div className="absolute bottom-0 left-0 p-4">
-                            <p className="text-white font-mono text-sm font-bold">Breaking Bad</p>
-                            <p className="text-zinc-300 text-xs">S08 E05 - The Awakening</p>
+                            <p className="text-white font-mono text-sm font-bold">{episodeData.show_name}</p>
+                            <p className="text-zinc-300 text-xs">S{String(episodeData.season_number).padStart(2, '0')} E{String(episodeData.episode_number).padStart(2, '0')} - {episodeData.episode_title}</p>
                         </div>
                     </div>
                     <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
                         <p className="text-gray-400 text-xs uppercase font-mono tracking-widest">Air Date</p>
-                        <p className="text-gray-900 text-sm mt-1">3rd October 2025</p>
-                        <span className="text-xs bg-gray-100 border border-gray-200 rounded-full px-3 py-0.5 mt-2 inline-block text-gray-500">6 days ago</span>
+                        <p className="text-gray-900 text-sm mt-1">{episodeData.episode_airdata}</p>
+                        <span className="text-xs bg-gray-100 border border-gray-200 rounded-full px-3 py-0.5 mt-2 inline-block text-gray-500">{daysAgoLabel}</span>
                     </div>
                     <button className="w-full py-2.5 rounded-lg border border-dashed border-gray-300 text-gray-400 font-mono text-xs tracking-wider hover:border-blue-400 hover:text-blue-400 transition-colors">
                         ↩ Search Again

@@ -5,7 +5,6 @@ export async function retrieveEpisode(showName: string, seasonNumber: number, ep
     if (retrieveEpisodeResponse.ok){
         const episodes = await retrieveEpisodeResponse.json();
         try{
-            console.log(episodeNumber)
             const episode = episodes.find((ep: { episode_number: number }) => ep.episode_number === episodeNumber);
             const {id, episode_number, title, air_date} = episode;
             return {
