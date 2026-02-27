@@ -98,158 +98,190 @@ export function Home() {
         const timer = setTimeout(() => {
           setErrorPopup(false);
         }, 3000); 
-  
         return () => clearTimeout(timer);
       }
     }, [errorPopup]);
 
     return (
-      <div className="bg-background bg-gray-50 text-foreground min-h-screen" >
-          <Navbar />
-          <div className="flex flex-col md:min-h-30 items-center justify-center gap-y-3">
-          <div className="relative flex w-full max-w-sm items-center justify-center gap-2 bg-white">
-            <Input 
-              placeholder="What are you looking for?" 
-              value={showName} 
-              onChange={(e) => setShowName(e.target.value)} 
-            />
+      <div className="bg-background bg-gray-50 text-foreground min-h-screen flex flex-col">
+        <Navbar />
 
-            {showSuggestions && (
-              <ul className="absolute top-full left-0 right-0 border mt-1 rounded bg-white shadow-md max-h-40 overflow-y-auto z-50">
-                {suggestions.map((show) => (
-                  <li 
-                    key={show.id} 
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      setShowName(show.name);
-                      setShowSuggestions(false);}} 
-                  >
-                    {show.name}
-                  </li>
-                ))}
-              </ul>
+        <div className="flex flex-1 flex-col md:flex-row">
+
+          <div className="flex flex-1 flex-col justify-start pt-24 px-12 pb-16 border-r border-gray-200">
+            <style>{`
+              @keyframes fadeUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to   { opacity: 1; transform: translateY(0); }
+              }
+              .fade-up-1 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.1s; }
+              .fade-up-2 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.25s; }
+              .fade-up-3 { opacity: 0; animation: fadeUp 0.6s ease forwards 0.4s; }
+            `}</style>
+            <p className="fade-up-1 text-sm uppercase tracking-widest text-gray-400 mb-3">
+              Reyapp 
+            </p>
+            <h1 className="fade-up-2 text-5xl font-bold leading-tight mb-5">
+              Engage with any episode,<br />spoiler free.
+            </h1>
+            <p className="fade-up-3 text-gray-500 text-lg leading-relaxed max-w-sm">
+              Search for a show, pick your episode, and start now.
+            </p>
+          </div>
+
+          <div className="flex flex-1 flex-col items-center justify-start pt-24 pb-16 gap-y-3">
+            <div className="relative flex w-full max-w-sm items-center justify-center gap-2 bg-white">
+              
+              <Input 
+                placeholder="What are you looking for?" 
+                value={showName} 
+                onChange={(e) => setShowName(e.target.value)} 
+              />
+
+              {showSuggestions && (
+                <ul className="absolute top-full left-0 right-0 border mt-1 rounded bg-white shadow-md max-h-40 overflow-y-auto z-50">
+                  {suggestions.map((show) => (
+                    <li 
+                      key={show.id} 
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setShowName(show.name);
+                        setShowSuggestions(false);
+                      }} 
+                    >
+                      {show.name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <Button type="button" variant="outline" onClick={handleSearchClick}>
+                Search
+              </Button>
+            </div>
+
+            {errorPopup && (
+              <Alert variant="destructive" className="text-center max-w-md"> 
+                <AlertTitle>Sorry! Could not find that show. Did you type it correctly?</AlertTitle>
+              </Alert>
             )}
 
-            <Button type="button" variant="outline" onClick={handleSearchClick}>
-              Search
-            </Button>
-          </div>
-          {errorPopup && (
-            <Alert variant="destructive" className="text-center max-w-md"> 
-              <AlertTitle>Sorry! Could not find that show. Did you type it correctly?</AlertTitle>
-            </Alert>
-          )}
-          {showSeasons && (
-            <div className="items-center justify-center">
-              <img src={showData?.url}/>
-            </div>
-          )}
-          {showSeasons && (
-            <div className="flex w-full max-w-sm items-center justify-center gap-2">     
-              <Popover open={openSeason} onOpenChange={setOpenSeason}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={openSeason}
-                    className="w-[200px] justify-between"
-                  >
-                    {valueSeason
-                      ? seasonOptions.find((s) => s.value === valueSeason)?.label
-                      : "Select Season..."}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </PopoverTrigger>
+            {showSeasons && (
+              <div className="items-center justify-center">
+                <img src={showData?.url}/>
+              </div>
+            )}
 
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search season..." className="h-9" />
-                    <CommandList>
-                      <CommandEmpty>No Season found.</CommandEmpty>
-                      <CommandGroup>
-                        {seasonOptions.map((season) => (
-                          <CommandItem
-                            key={season.value}
-                            value={season.value.toString()} 
-                            onSelect={(currentValue) => {
-                              setValueSeason(Number(currentValue));
-                              setShowEpisodes(true);
-                              setValueEpisode("");
-                              setOpenSeason(false);
-                            }}
-                          >
-                            {season.label}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                valueSeason === season.value ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              {showEpisodes && (
-                <Popover open={openEpisode} onOpenChange={setOpenEpisode}>
+            {showSeasons && (
+              <div className="flex w-full max-w-sm items-center justify-center gap-2">     
+                <Popover open={openSeason} onOpenChange={setOpenSeason}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
-                      aria-expanded={openEpisode}
+                      aria-expanded={openSeason}
                       className="w-[200px] justify-between"
                     >
-                      {valueEpisode
-                        ? `Episode ${valueEpisode}`
-                        : "Select Episode..."}
+                      {valueSeason
+                        ? seasonOptions.find((s) => s.value === valueSeason)?.label
+                        : "Select Season..."}
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
                   </PopoverTrigger>
+
                   <PopoverContent className="w-[200px] p-0">
                     <Command>
-                      <CommandInput placeholder="Search episode..." className="h-9" />
+                      <CommandInput placeholder="Search season..." className="h-9" />
                       <CommandList>
-                        <CommandEmpty>No Episode found.</CommandEmpty>
+                        <CommandEmpty>No Season found.</CommandEmpty>
                         <CommandGroup>
-                        {episodeOptions.map((episode) => (
-                          <CommandItem
-                            key={episode.value}
-                            value={episode.value.toString()}
-                            onSelect={(currentValue) => {
-                              setValueEpisode(currentValue);
-                              setOpenEpisode(false);
-                              handleSelection(currentValue);
-                              setShowGo(true);
-                            }}
-                          >
-                            {episode.label}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                valueEpisode === episode.value.toString()
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
+                          {seasonOptions.map((season) => (
+                            <CommandItem
+                              key={season.value}
+                              value={season.value.toString()} 
+                              onSelect={(currentValue) => {
+                                setValueSeason(Number(currentValue));
+                                setShowEpisodes(true);
+                                setValueEpisode("");
+                                setOpenSeason(false);
+                              }}
+                            >
+                              {season.label}
+                              <Check
+                                className={cn(
+                                  "ml-auto",
+                                  valueSeason === season.value ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
                         </CommandGroup>
                       </CommandList>
                     </Command>
                   </PopoverContent>
                 </Popover>
+
+                {showEpisodes && (
+                  <Popover open={openEpisode} onOpenChange={setOpenEpisode}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openEpisode}
+                        className="w-[200px] justify-between"
+                      >
+                        {valueEpisode
+                          ? `Episode ${valueEpisode}`
+                          : "Select Episode..."}
+                        <ChevronsUpDown className="opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search episode..." className="h-9" />
+                        <CommandList>
+                          <CommandEmpty>No Episode found.</CommandEmpty>
+                          <CommandGroup>
+                            {episodeOptions.map((episode) => (
+                              <CommandItem
+                                key={episode.value}
+                                value={episode.value.toString()}
+                                onSelect={(currentValue) => {
+                                  setValueEpisode(currentValue);
+                                  setOpenEpisode(false);
+                                  handleSelection(currentValue);
+                                  setShowGo(true);
+                                }}
+                              >
+                                {episode.label}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    valueEpisode === episode.value.toString()
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 )}
+
                 {showGo && (
                   <Button variant="outline" onClick={() => {
                     navigate("/episode", { state: selectionString });
                   }}>Let's Go!</Button>
                 )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+
         </div>
-    </div>
+      </div>
     );
   }
 

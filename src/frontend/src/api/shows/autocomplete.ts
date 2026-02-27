@@ -1,6 +1,5 @@
 import { type AutoCompleteOutput } from "./types";
 
-
 export async function autocomplete(inputString: string): Promise<AutoCompleteOutput[]> {
     const response = await fetch(`/api/v1/database/retrieve-n-shows/${encodeURIComponent(inputString)}`)
   

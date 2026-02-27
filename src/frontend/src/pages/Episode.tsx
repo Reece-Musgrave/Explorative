@@ -1,10 +1,11 @@
 import Navbar from "../components/layout/navbar.tsx"
 import { useState } from "react"
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate} from "react-router-dom";
 import { type RetrieveEpisodeOutput } from "../api/shows/types.ts";
 
 export function Episode() {
 
+    const navigate = useNavigate();
     const [sentimentOpen, setSentimentOpen] = useState(true)
     const [communityOpen, setCommunityOpen] = useState(false)
     const location = useLocation();
@@ -40,8 +41,9 @@ export function Episode() {
                         <p className="text-gray-900 text-sm mt-1">{episodeData.episode_airdata}</p>
                         <span className="text-xs bg-gray-100 border border-gray-200 rounded-full px-3 py-0.5 mt-2 inline-block text-gray-500">{daysAgoLabel}</span>
                     </div>
-                    <button className="w-full py-2.5 rounded-lg border border-dashed border-gray-300 text-gray-400 font-mono text-xs tracking-wider hover:border-blue-400 hover:text-blue-400 transition-colors">
-                        ↩ Search Again
+                    <button className="w-full py-2.5 rounded-lg border border-dashed border-gray-300 text-gray-400 font-mono text-xs tracking-wider hover:border-blue-400 hover:text-blue-400 transition-colors"
+                        onClick={() => navigate("/")}
+                    > ↩ Search Again
                     </button>
                 </div>
 
