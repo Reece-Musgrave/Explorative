@@ -1,15 +1,34 @@
 """
-This would need to be a webcrawler -> runs on demand hitting one webpage to extract the rating
+Rating Retrieval method makes use of a webcrawler to extract the ratings if possible from RT.
 
-Example URLs: https://www.rottentomatoes.com/tv/stranger_things/s05/e02
-              https://www.rottentomatoes.com/tv/the_last_of_us/s02/e02
-
-Identical URL formats for the TV shows. With the required information being stored in the HTML
+The URLs and HTML all primarily seem to follow the same syntax so the majority of cases should return values
 """
 
+import requests
+import json
+from bs4 import BeautifulSoup
+from backend.core.exceptions import NotFoundError
+
+base_url_rt = "https://www.rottentomatoes.com"
 
 def retrieve_episode_rating_from_rt(show, season, episode):
-    pass
+    show_string = show.replace(" ", "_")
+    search_url = f"{base_url_rt}/tv/{show_string}/s{season}/e{episode}"
+
+    try:
+        scraped_page = requests.get(search_url)
+
+        soup = BeautifulSoup(scraped_page.content, "html.parser")
+        script_tag = soup.find("script", {"id": "media-scorecard-json"})
+        data = json.loads(script_tag.string)
+        
+        score = data["criticsScore"]["scorePercent"]   
+        reviews = data["criticsScore"]["reviewCount"]  
+        
+        return {"score": score, "review_count": reviews}
+    except:
+        raise NotFoundError(f"Unable to scrape RT rating for episode, it may not exist")
+
 
 def insert_episode_rating_from_rt_to_db(show, season, episode):
     pass
