@@ -1,7 +1,5 @@
 import requests 
-
-class APIError(Exception):
-    pass
+from backend.core.exceptions import APIError
 
 class ShowAPI: 
 
