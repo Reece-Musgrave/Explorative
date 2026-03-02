@@ -1,9 +1,3 @@
-"""
-Rating Retrieval method makes use of a webcrawler to extract the ratings if possible from RT.
-
-The URLs and HTML all primarily seem to follow the same syntax so the majority of cases should return values
-"""
-
 import requests
 import json
 from bs4 import BeautifulSoup
