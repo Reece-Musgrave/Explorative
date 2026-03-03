@@ -2,7 +2,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
-from backend.core.exceptions import NotFoundError, APIError
+from backend.core.exceptions import NotFoundError
 from backend.models.shows import Shows
 from backend.models.seasons import Seasons
 from backend.models.episodes import Episodes
@@ -10,7 +10,7 @@ from backend.models.ratings import Ratings
 
 base_url_rt = "https://www.rottentomatoes.com"
 
-def retrieve_episode_rating_from_rt(show, season, episode):
+def get_episode_rating_from_rt(show, season, episode):
     show_string = show.replace(" ", "_")
     search_url = f"{base_url_rt}/tv/{show_string}/s{season}/e{episode}"
 
@@ -41,7 +41,7 @@ def insert_episode_rating_from_rt_to_db(db: Session, show: str, season: int, epi
     )
   
     if not episode:
-        raise APIError(f"Episode S{season}E{episode_number} of {show} not found in database")
+        raise NotFoundError(f"Episode S{season}E{episode_number} of {show} not found in database")
 
     existing_rating = db.query(Ratings).filter(Ratings.episode_id == episode.id).first()
 

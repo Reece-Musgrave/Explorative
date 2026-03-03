@@ -53,3 +53,9 @@ class EpisodeOutput(BaseModel):
     episode_number: int
     title: str
     air_date: str 
+
+class RatingInput(BaseModel):
+    show: str
+    season: int
+    episode: int
+    rating: str

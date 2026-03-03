@@ -1,7 +1,7 @@
 from backend.core.exceptions import NotFoundError
 from playwright.sync_api import sync_playwright
 from sqlalchemy.orm import Session
-from backend.core.exceptions import APIError
+from backend.core.exceptions import NotFoundError
 from backend.models.shows import Shows
 from backend.models.seasons import Seasons
 from backend.models.episodes import Episodes
@@ -9,7 +9,7 @@ from backend.models.ratings import Ratings
 
 base_url_serializd = "https://www.serializd.com"
 
-def retrieve_episode_rating_from_serializd(show, season, episode):
+def get_episode_rating_from_serializd(show, season, episode):
     show_string = show.replace(" ", "%20")
     search_url = f"{base_url_serializd}/search?searchQuery={show_string}"
     try:
@@ -52,7 +52,7 @@ def insert_episode_rating_from_serializd_to_db(db: Session, show: str, season: i
     )
   
     if not episode:
-        raise APIError(f"Episode S{season}E{episode_number} of {show} not found in database")
+        raise NotFoundError(f"Episode S{season}E{episode_number} of {show} not found in database")
 
     existing_rating = db.query(Ratings).filter(Ratings.episode_id == episode.id).first()
 

@@ -1,6 +1,6 @@
 import requests 
 from sqlalchemy.orm import Session
-from backend.core.exceptions import APIError
+from backend.core.exceptions import NotFoundError, APIError
 from backend.models.shows import Shows
 from backend.models.seasons import Seasons
 from backend.models.episodes import Episodes
@@ -8,7 +8,7 @@ from backend.models.ratings import Ratings
 
 base_url_imdb_api = "https://api.imdbapi.dev"
 
-def retrieve_episode_rating_from_imdb(show: str, season: int, episode: int):
+def get_episode_rating_from_imdb(show: str, season: int, episode: int):
     show = show.replace(" ", "+")
     response = requests.get(f"{base_url_imdb_api}/search/titles?query={show}&limit=1")
     if (response.ok):
@@ -36,7 +36,7 @@ def insert_episode_rating_from_imdb_to_db(db: Session, show: str, season: int, e
     )
   
     if not episode:
-        raise APIError(f"Episode S{season}E{episode_number} of {show} not found in database")
+        raise NotFoundError(f"Episode S{season}E{episode_number} of {show} not found in database")
 
     existing_rating = db.query(Ratings).filter(Ratings.episode_id == episode.id).first()
 
