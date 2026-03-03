@@ -1,5 +1,11 @@
 from backend.core.exceptions import NotFoundError
 from playwright.sync_api import sync_playwright
+from sqlalchemy.orm import Session
+from backend.core.exceptions import APIError
+from backend.models.shows import Shows
+from backend.models.seasons import Seasons
+from backend.models.episodes import Episodes
+from backend.models.ratings import Ratings
 
 base_url_serializd = "https://www.serializd.com"
 
@@ -34,5 +40,29 @@ def retrieve_episode_rating_from_serializd(show, season, episode):
     except:
         raise NotFoundError(f"Unable to scrape RT rating for episode, it may not exist")
 
-def insert_episode_rating_from_serializd_to_db(show, season, episode):
-    pass
+def insert_episode_rating_from_serializd_to_db(db: Session, show: str, season: int, episode_number: int, rating: str):
+    episode = (
+        db.query(Episodes)
+        .join(Episodes.seasons)
+        .join(Seasons.shows)
+        .filter(Shows.name == show)
+        .filter(Seasons.season_number == season)
+        .filter(Episodes.episode_number == episode_number)
+        .first()
+    )
+  
+    if not episode:
+        raise APIError(f"Episode S{season}E{episode_number} of {show} not found in database")
+
+    existing_rating = db.query(Ratings).filter(Ratings.episode_id == episode.id).first()
+
+    if existing_rating:
+        existing_rating.serializd  = rating
+    else:
+        new_rating = Ratings(
+            episode_id=episode.id,
+            serializd=rating
+        )
+        db.add(new_rating)
+
+    db.commit()
