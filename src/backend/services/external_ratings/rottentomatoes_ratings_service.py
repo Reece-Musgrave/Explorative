@@ -26,7 +26,7 @@ def get_episode_rating_from_rt(show, season, episode):
         
         return {"score": score, "review_count": reviews}
     except:
-        raise NotFoundError(f"Unable to scrape RT rating for episode, it may not exist")
+        raise NotFoundError(f"Unable to scrape RT rating for episode, it may not exist", search_url)
 
 
 def insert_episode_rating_from_rt_to_db(db: Session, show: str, season: int, episode_number: int, rating: str):

@@ -54,8 +54,36 @@ class EpisodeOutput(BaseModel):
     title: str
     air_date: str 
 
-class RatingInput(BaseModel):
+class IMDBRating(BaseModel):
+    aggregateRating: float
+    voteCount: int
+
+class RTRating(BaseModel):
+    score: str
+    review_count: int
+
+class RatingInputIMDB(BaseModel):
+    show: str
+    season: int
+    episode: int
+    rating: IMDBRating
+
+class RatingInputRT(BaseModel):
+    show: str
+    season: int
+    episode: int
+    rating: RTRating
+
+class RatingInputSerializd(BaseModel):
     show: str
     season: int
     episode: int
     rating: str
+
+class RatingOutput(BaseModel):
+    id: int    
+    episode_id: int
+    imdb: int
+    rt: int
+    serializd: int
+    ai_sent: int
