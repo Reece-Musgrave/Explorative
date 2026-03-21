@@ -1,5 +1,5 @@
 import Navbar from "../components/layout/navbar.tsx"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLocation, useNavigate} from "react-router-dom";
 import { type RetrieveEpisodeOutput } from "../api/shows/types.ts";
 
@@ -8,6 +8,7 @@ export function Episode() {
     const navigate = useNavigate();
     const [sentimentOpen, setSentimentOpen] = useState(true)
     const [communityOpen, setCommunityOpen] = useState(false)
+    const [chatOpen, setChatOpen] = useState(false)
     const location = useLocation();
     const episodeData: RetrieveEpisodeOutput = location.state;
 
@@ -21,6 +22,12 @@ export function Episode() {
     ? "Yesterday" 
     : `${diffDays} days ago`;
 
+    useEffect(() => {
+        if (diffDays >= 3) {
+            setChatOpen(true)
+        }
+    }, [diffDays])
+    
     return (
         <div className="bg-gray-50 min-h-screen">
             <Navbar/>
@@ -151,43 +158,59 @@ export function Episode() {
                 </div>
                 {/* Right Column */}
                 <div className="flex flex-col h-[calc(100vh-40px)] sticky top-[40px] border-l border-gray-200">
-                {/* Chat Header */}
-                <div className="p-4 border-b border-gray-200 bg-white">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        <p className="text-gray-900 font-mono text-sm">Live Chat</p>
-                        <span className="ml-auto text-gray-400 text-xs font-mono">14 watching</span>
-                    </div>
-                    <p className="text-gray-400 text-xs mt-1">Episode aired 6 days ago</p>
-                </div>
-                {/* Messages */}
-                <div className="flex flex-col gap-3 p-4 overflow-y-auto flex-1">
-                    <div className="flex flex-col gap-1">
-                        <span className="text-gray-400 text-xs font-mono">user1</span>
-                        <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2 text-xs text-gray-700 max-w-[85%]">
-                            Example message
+                    {chatOpen && (
+                        <>
+                            <div className="p-4 border-b border-gray-200 bg-white">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                                    <p className="text-gray-900 font-mono text-sm">Live Chat</p>
+                                    <span className="ml-auto text-gray-400 text-xs font-mono">14 watching</span>
+                                </div>
+                                <p className="text-gray-400 text-xs mt-1">Episode aired 6 days ago</p>
+                            </div>
+                            {/* Messages */}
+                            <div className="flex flex-col gap-3 p-4 overflow-y-auto flex-1">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-gray-400 text-xs font-mono">user1</span>
+                                    <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2 text-xs text-gray-700 max-w-[85%]">
+                                        Example message
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Input */}
+                            <div className="p-4 border-t border-gray-200 bg-white flex gap-2">
+                                <input
+                                    className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-xs text-gray-700 outline-none placeholder:text-gray-400"
+                                    placeholder="Say something..."
+                                />
+                                <button className="bg-blue-500 hover:bg-blue-600 transition-colors text-white text-xs font-mono px-4 py-2 rounded-full">
+                                    Send
+                                </button>
+                            </div>
+                        </>
+                    )}
+                    {!chatOpen && (
+                        <div className="flex flex-col items-center justify-center h-full p-6 gap-4">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                <span className="text-gray-400 text-lg">💬</span>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-gray-900 font-mono text-sm font-medium">Live Chat Unavailable</p>
+                                <p className="text-gray-400 text-xs mt-2 leading-relaxed">
+                                    Live chat is only available for episodes released within the last 72 hours.
+                                </p>
+                            </div>
+                            <div className="border border-dashed border-gray-200 rounded-xl p-4 w-full">
+                                <p className="text-gray-400 text-xs text-center font-mono">
+                                    Want to chat live with others?
+                                </p>
+                                <p className="text-blue-400 text-xs text-center font-mono mt-1 cursor-pointer hover:text-blue-500 transition-colors">
+                                    Explore our Watch Parties
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <span className="text-gray-400 text-xs font-mono">user2</span>
-                        <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2 text-xs text-gray-700 max-w-[85%]">
-                            example message 2
-                        </div>
-                    </div>
-                    
+                    )}
                 </div>
-                {/* Input */}
-                <div className="p-4 border-t border-gray-200 bg-white flex gap-2">
-                    <input
-                        className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-xs text-gray-700 outline-none placeholder:text-gray-400"
-                        placeholder="Say something..."
-                    />
-                    <button className="bg-blue-500 hover:bg-blue-600 transition-colors text-white text-xs font-mono px-4 py-2 rounded-full">
-                        Send
-                    </button>
-                </div>
-                </div>
-
             </div>
         </div>
     )
