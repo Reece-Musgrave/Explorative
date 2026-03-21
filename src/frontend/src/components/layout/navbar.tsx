@@ -47,10 +47,10 @@ export default function Navbar() {
          <a href="/" className="text-sm/6 font-semibold text-gray-900">
             Search
           </a>
-          <a href="#" className="text-sm/6 font-semibold text-gray-900">
+          <a className="text-sm/6 font-semibold text-gray-300">
             Feed
           </a>
-          <a href="#" className="text-sm/6 font-semibold text-gray-900">
+          <a className="text-sm/6 font-semibold text-gray-300">
             Watch Party
           </a>
         </PopoverGroup>

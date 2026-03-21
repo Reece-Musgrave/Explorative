@@ -61,7 +61,7 @@ async def insert_imdb_rating(data: RatingInputIMDB, db: Session = Depends(get_db
 @router.put("/api/v1/ratings/insert-rt-rating", status_code=204)
 async def insert_rt_rating(data: RatingInputRT, db: Session = Depends(get_db)):
     try:
-        insert_episode_rating_from_imdb_to_db(db, data.show, data.season, data.episode, data.rating.model_dump_json())
+        insert_episode_rating_from_rt_to_db(db, data.show, data.season, data.episode, data.rating.model_dump_json())
     except IntegrityError:
         db.rollback()  
         raise HTTPException(status_code=409)
@@ -69,7 +69,7 @@ async def insert_rt_rating(data: RatingInputRT, db: Session = Depends(get_db)):
 @router.put("/api/v1/ratings/insert-serializd-rating", status_code=204)
 async def insert_serializd_rating(data: RatingInputSerializd, db: Session = Depends(get_db)):
     try:
-        insert_episode_rating_from_imdb_to_db(db, data.show, data.season, data.episode, data.rating)
+        insert_episode_rating_from_serializd_to_db(db, data.show, data.season, data.episode, data.rating)
     except IntegrityError:
         db.rollback()  
         raise HTTPException(status_code=409)

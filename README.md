@@ -44,7 +44,7 @@ Activate Virtual Env: 'source venv/bin/activate'
 ###
 Build and launch latest containers locally
 'docker compose build --no-cache'
-'docker compose up '
+'docker compose up'
 
 ###
 Run Test Suite
