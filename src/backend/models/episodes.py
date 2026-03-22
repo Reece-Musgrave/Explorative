@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from backend.db.base import Base
 
 class Episodes(Base):
@@ -9,3 +10,5 @@ class Episodes(Base):
     episode_number = Column(Integer)
     title = Column(String)
     air_date = Column(String)
+
+    seasons = relationship("Seasons", back_populates="episodes")

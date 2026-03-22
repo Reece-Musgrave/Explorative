@@ -1,7 +1,8 @@
 import Navbar from "../components/layout/navbar.tsx"
 import { useState, useEffect } from "react"
+import { retrieveRatings } from "../api/shows/ratings.ts";
 import { useLocation, useNavigate} from "react-router-dom";
-import { type RetrieveEpisodeOutput } from "../api/shows/types.ts";
+import { type RetrieveEpisodeOutput, type IMDBRating, type RTRating } from "../api/shows/types.ts";
 
 export function Episode() {
 
@@ -11,6 +12,13 @@ export function Episode() {
     const [chatOpen, setChatOpen] = useState(false)
     const location = useLocation();
     const episodeData: RetrieveEpisodeOutput = location.state;
+
+    const [imdbRating, setImdbRating] = useState<IMDBRating | null>(null)
+    const [rtRating, setRtRating] = useState<RTRating | null>(null)
+    const [serializdRating, setSerializdRating] = useState<string | null>(null)
+    const [imdbLoading, setImdbLoading] = useState(true)
+    const [rtLoading, setRtLoading] = useState(true)
+    const [serializdLoading, setSerializdLoading] = useState(true)
 
     const airDate = new Date(episodeData.episode_airdata);
     const today = new Date();
@@ -27,6 +35,20 @@ export function Episode() {
             setChatOpen(true)
         }
     }, [diffDays])
+
+    useEffect(() => {
+        retrieveRatings(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+            .then(data => {
+                setImdbRating(data.imdb)
+                setRtRating(data.rt)
+                setSerializdRating(data.serializd)
+            })
+            .finally(() => {
+                setImdbLoading(false)
+                setRtLoading(false)
+                setSerializdLoading(false)
+            })
+    }, [])
     
     return (
         <div className="bg-gray-50 min-h-screen">
@@ -59,27 +81,39 @@ export function Episode() {
                     <div className="flex flex-row gap-3">
                         <div className="flex flex-col gap-2 flex-1 bg-white border border-gray-200 shadow-sm rounded-xl p-4">
                             <p className="text-gray-400 text-xs font-mono tracking-widest uppercase">IMDb</p>
-                            <p className="text-gray-900 text-3xl font-bold font-mono">9.7</p>
-                            <div className="h-1 bg-gray-200 rounded-full">
-                                <div className="h-1 bg-blue-500 rounded-full w-[97%]" />
-                            </div>
-                            <p className="text-gray-400 text-xs">from 22,400 ratings</p>
+                            {imdbLoading ? <RatingSpinner /> : (
+                                <>
+                                    <p className="text-gray-900 text-3xl font-bold font-mono">{imdbRating?.aggregateRating ?? "N/A"}</p>
+                                    <div className="h-1 bg-gray-200 rounded-full">
+                                        <div className="h-1 bg-blue-500 rounded-full" style={{ width: `${imdbRating?.aggregateRating ? imdbRating.aggregateRating * 10 : 0}%` }} />
+                                    </div>
+                                    <p className="text-gray-400 text-xs">from {imdbRating?.voteCount?.toLocaleString() ?? "—"} ratings</p>
+                                </>
+                            )}
                         </div>
                         <div className="flex flex-col gap-2 flex-1 bg-white border border-gray-200 shadow-sm rounded-xl p-4">
                             <p className="text-gray-400 text-xs font-mono tracking-widest uppercase">Rotten Tomatoes</p>
-                            <p className="text-gray-900 text-3xl font-bold font-mono">94%</p>
-                            <div className="h-1 bg-gray-200 rounded-full">
-                                <div className="h-1 bg-blue-500 rounded-full w-[94%]" />
-                            </div>
-                            <p className="text-gray-400 text-xs">Tomatometer</p>
+                            {rtLoading ? <RatingSpinner /> : (
+                                <>
+                                    <p className="text-gray-900 text-3xl font-bold font-mono">{rtRating?.score ?? "N/A"}</p>
+                                    <div className="h-1 bg-gray-200 rounded-full">
+                                        <div className="h-1 bg-blue-500 rounded-full" style={{ width: rtRating?.score ? `${parseInt(rtRating.score)}%` : '0%' }} />
+                                    </div>
+                                    <p className="text-gray-400 text-xs">{rtRating?.review_count ? `from ${rtRating.review_count.toLocaleString()} reviews` : "—"}</p>
+                                </>
+                            )}
                         </div>
                         <div className="flex flex-col gap-2 flex-1 bg-white border border-gray-200 shadow-sm rounded-xl p-4">
-                            <p className="text-gray-400 text-xs font-mono tracking-widest uppercase">Serialized</p>
-                            <p className="text-gray-900 text-3xl font-bold font-mono">4.0 Stars</p>
-                            <div className="h-1 bg-gray-200 rounded-full">
-                                <div className="h-1 bg-blue-500 rounded-full w-[80%]" />
-                            </div>
-                            <p className="text-gray-400 text-xs">from Serialized</p>
+                            <p className="text-gray-400 text-xs font-mono tracking-widest uppercase">Serializd</p>
+                            {serializdLoading ? <RatingSpinner /> : (
+                                <>
+                                    <p className="text-gray-900 text-3xl font-bold font-mono">{serializdRating ?? "N/A"}</p>
+                                    <div className="h-1 bg-gray-200 rounded-full">
+                                        <div className="h-1 bg-blue-500 rounded-full" style={{ width: serializdRating ? `${(parseFloat(serializdRating) / 5) * 100}%` : '0%' }} />
+                                    </div>
+                                    <p className="text-gray-400 text-xs">from Serializd</p>
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
@@ -216,4 +250,13 @@ export function Episode() {
     )
 }
 
+function RatingSpinner() {
+    return (
+        <div className="flex items-center justify-center h-8">
+            <div className="w-4 h-4 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+        </div>
+    )
+}
+
 export default Episode
+

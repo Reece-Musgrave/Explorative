@@ -36,11 +36,10 @@ async def retrieve_imdb(show: str, season: int, episode: int):
 
 @router.get("/api/v1/ratings/retrieve-rt/{show}/{season}/{episode}")
 async def retrieve_rt(show: str, season, episode):
-    try:
-        output = get_episode_rating_from_rt(show, season, episode)
-        return output
-    except APIError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    output = get_episode_rating_from_rt(show, season, episode)
+    if output is None:
+        raise HTTPException(status_code=404, detail="RT rating not found")
+    return output
 
 @router.get("/api/v1/ratings/retrieve-serializd/{show}/{season}/{episode}")
 async def retrieve_serializd(show: str, season: int, episode: int):

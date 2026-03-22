@@ -11,22 +11,20 @@ from backend.models.ratings import Ratings
 base_url_rt = "https://www.rottentomatoes.com"
 
 def get_episode_rating_from_rt(show, season, episode):
-    show_string = show.replace(" ", "_")
-    search_url = f"{base_url_rt}/tv/{show_string}/s{season}/e{episode}"
+    show_string = show.replace(" ", "_").lower()
+    search_url = f"{base_url_rt}/tv/{show_string}/s{str(season).zfill(2)}/e{str(episode).zfill(2)}"
 
     try:
-        scraped_page = requests.get(search_url)
-
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        scraped_page = requests.get(search_url, headers=headers)
         soup = BeautifulSoup(scraped_page.content, "html.parser")
         script_tag = soup.find("script", {"id": "media-scorecard-json"})
         data = json.loads(script_tag.string)
-        
-        score = data["criticsScore"]["scorePercent"]   
-        reviews = data["criticsScore"]["reviewCount"]  
-        
+        score = data["criticsScore"]["scorePercent"]
+        reviews = data["criticsScore"]["reviewCount"]
         return {"score": score, "review_count": reviews}
     except:
-        raise NotFoundError(f"Unable to scrape RT rating for episode, it may not exist", search_url)
+        return None
 
 
 def insert_episode_rating_from_rt_to_db(db: Session, show: str, season: int, episode_number: int, rating: str):
