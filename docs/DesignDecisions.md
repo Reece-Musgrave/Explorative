@@ -9,3 +9,4 @@
 ### Personal User Accounts / Token Security 
 ### Third Party API Integrations 
 ### Web Crawler Functionality
+### SQL Table Mappings (Diagram)

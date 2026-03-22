@@ -23,7 +23,7 @@ export function Episode() {
     : `${diffDays} days ago`;
 
     useEffect(() => {
-        if (diffDays >= 3) {
+        if (diffDays <= 3) {
             setChatOpen(true)
         }
     }, [diffDays])
