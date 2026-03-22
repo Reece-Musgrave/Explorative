@@ -26,7 +26,7 @@ export default function Navbar() {
 
   return (
     <header className="bg-gray-50">
-      <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between py-2 px-6 lg:px-8" >
+      <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between py-2 px-6 lg:px-8">
         <div className="flex lg:flex-1">
           <a href="#" className="-m-1.5 p-1.5">
             <span className="sr-only">ReYapp</span>
@@ -44,29 +44,20 @@ export default function Navbar() {
           </button>
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
-         <a href="/" className="text-sm/6 font-semibold text-gray-900">
-            Search
-          </a>
-          <a className="text-sm/6 font-semibold text-gray-300">
-            Feed
-          </a>
-          <a className="text-sm/6 font-semibold text-gray-300">
-            Watch Party
-          </a>
+          <a href="/" className="text-sm/6 font-semibold text-gray-900">Search</a>
+          <a className="text-sm/6 font-semibold text-gray-300">Feed</a>
+          <a className="text-sm/6 font-semibold text-gray-300">Watch Party</a>
         </PopoverGroup>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-        {accessToken ? ( 
-                  <div>
-                    <button onClick={handleLogout}
-                    className="-mx-3 rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Logout</button>
-                  </div>
-                ) : (
-                <Link
-                  to="/login"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                  >
-                  Log in / Sign up
-                  </Link>)}
+          {accessToken ? (
+            <button onClick={handleLogout} className="text-sm/6 font-semibold text-gray-900">
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" className="text-sm/6 font-semibold text-gray-900">
+              Log in / Sign up
+            </Link>
+          )}
         </div>
       </nav>
       <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
@@ -89,38 +80,26 @@ export default function Navbar() {
           <div className="mt-6 flow-root">
             <div className="-my-6 divide-y divide-gray-500/10">
               <div className="space-y-2 py-6">
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
+                <a href="/" className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50">
                   Search
                 </a>
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
+                <a className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-300">
                   Feed
                 </a>
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
+                <a className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-300">
                   Watch Party
                 </a>
               </div>
               <div className="py-6">
-              {accessToken ? ( 
-                  <div>
-                    <button onClick={handleLogout}
-                    className="-mx-3 rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">Logout</button>
-                  </div>
+                {accessToken ? (
+                  <button onClick={handleLogout} className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50">
+                    Logout
+                  </button>
                 ) : (
-                <Link
-                  to="/login"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                  >
-                  Log in / Sign up
-                  </Link>)}
+                  <Link to="/login" className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50">
+                    Log in / Sign up
+                  </Link>
+                )}
               </div>
             </div>
           </div>
