@@ -1,7 +1,11 @@
-import os
 from anthropic import Anthropic
-import json
 from backend.core.config import settings
+from sqlalchemy.orm import Session
+from backend.models.shows import Shows
+from backend.models.seasons import Seasons
+from backend.models.episodes import Episodes
+from backend.models.ratings import Ratings
+from backend.core.exceptions import NotFoundError
 
 tools = [
     {
@@ -42,3 +46,39 @@ def get_ai_sentiment_analysis(reviews):
     except Exception as e:
         print(f"AI sentiment analysis error: {str(e)}")
         raise RuntimeError("Failed to generate sentiment analysis")
+
+def insert_ai_sentiment_analysis_for_episode(db: Session, analysis: str, show: str, season: int, episode_number: int):
+    episode = (
+        db.query(Episodes)
+        .join(Episodes.seasons)
+        .join(Seasons.shows)
+        .filter(Shows.name == show)
+        .filter(Seasons.season_number == season)
+        .filter(Episodes.episode_number == episode_number)
+        .first()
+    )
+  
+    if not episode:
+        raise NotFoundError(f"Episode S{season}E{episode_number} of {show} not found in database")
+
+    existing_rating = db.query(Ratings).filter(Ratings.episode_id == episode.id).first()
+
+    if existing_rating:
+        existing_rating.ai_sent = analysis
+
+def get_ai_sentiment_analysis_from_db(db: Session, show: str, season: int, episode_number: int):
+    episode = (
+        db.query(Episodes)
+        .join(Episodes.seasons)
+        .join(Seasons.shows)
+        .filter(Shows.name == show)
+        .filter(Seasons.season_number == season)
+        .filter(Episodes.episode_number == episode_number)
+        .first()
+    )
+    if not episode:
+        raise NotFoundError(f"Episode S{season}E{episode_number} of {show} not found in database")
+
+    existing_rating = db.query(Ratings).filter(Ratings.episode_id == episode.id).first()
+
+    return existing_rating.ai_sent
