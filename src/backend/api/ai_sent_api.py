@@ -2,16 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.db.session import get_db
 from backend.services.sentiment_review.sentiment_analysis import get_ai_sentiment_analysis
+from backend.schemas.sentiment import SentimentInput, SentimentOutput
 
 router = APIRouter()
 
-@router.get("/api/v1/ai/retrieve-sentiment-anlysis/{reviews}")
-async def retrieve_sentiment_anlysis(reviews):
+@router.post("/api/v1/ai/sentiment-analysis")
+async def retrieve_sentiment_analysis(data: SentimentInput) -> SentimentOutput:
     try:
-        data = get_ai_sentiment_analysis(reviews)
-        return {"result": data}
+        result = get_ai_sentiment_analysis(data.reviews)
+        return SentimentOutput(**result)
     except Exception:
-        raise HTTPException(status_code=500, detail="Unexpected server error")
+        raise HTTPException(status_code=500, detail="Failed to generate sentiment analysis")
 
 
 @router.put("/api/v1/ai/insert-sentiment-analysis/{analysis}")
