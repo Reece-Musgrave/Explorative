@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.db.session import get_db
 from backend.services.sentiment_review.sentiment_analysis import get_ai_sentiment_analysis, insert_ai_sentiment_analysis_for_episode, get_ai_sentiment_analysis_from_db
+from backend.services.sentiment_review.review_processing import get_reviews_from_imdb, get_reviews_from_rt, format_and_truncate_reviews
 from backend.schemas.sentiment import SentimentInput, SentimentOutput, SemtimentDBInput
+import asyncio
 
 router = APIRouter()
 
@@ -28,3 +30,15 @@ async def retrieve_sentiment_analysis_db(show: str, season: int, episode: int, d
     if output is None:
         raise HTTPException(status_code=404, detail="Sentiment Analysis not found")
     return output
+
+@router.get("/api/v1/ai/retrieve-reviews/{show}/{season}/{episode}")
+async def retrieve_reviews(show: str, season: int, episode: int, review_count: int = 20):
+    try:
+        imdb_reviews, rt_reviews = await asyncio.gather(
+            get_reviews_from_imdb(show, season, episode, review_count),
+            get_reviews_from_rt(show, season, episode, review_count)
+        )
+        formatted = format_and_truncate_reviews(imdb_reviews, rt_reviews)
+        return { "reviews": formatted }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to scrape reviews: {str(e)}")

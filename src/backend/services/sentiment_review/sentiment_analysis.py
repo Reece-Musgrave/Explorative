@@ -26,6 +26,7 @@ tools = [
 
 def get_ai_sentiment_analysis(reviews):
     try:
+        print(reviews)
         client = Anthropic(
             api_key=settings.ANTHROPIC_API_KEY
         )
@@ -36,11 +37,10 @@ def get_ai_sentiment_analysis(reviews):
             tool_choice={"type": "tool", "name": "sentiment_analysis"},
             messages=[{
                 "role": "user",
-                "content": f"Analyze these reviews:\n{reviews}"
+                "content": f"Analyze these reviews, with a max word count of 65 for the summary:\n{reviews}"
             }],
             model="claude-haiku-4-5-20251001",
         )
-        print(response)
         return response.content[0].input
     
     except Exception as e:
@@ -83,4 +83,7 @@ def get_ai_sentiment_analysis_from_db(db: Session, show: str, season: int, episo
 
     existing_rating = db.query(Ratings).filter(Ratings.episode_id == episode.id).first()
 
+    if not existing_rating or not existing_rating.ai_sent:
+        return None
+    
     return existing_rating.ai_sent

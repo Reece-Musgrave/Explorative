@@ -1,13 +1,14 @@
 import Navbar from "../components/layout/navbar.tsx"
 import { useState, useEffect } from "react"
 import { retrieveRatings } from "../api/shows/ratings.ts";
+import { getOrGenerateSentiment } from "../api/shows/ai-sentiment.ts";
 import { useLocation, useNavigate} from "react-router-dom";
-import { type RetrieveEpisodeOutput, type IMDBRating, type RTRating } from "../api/shows/types.ts";
+import { type RetrieveEpisodeOutput, type IMDBRating, type RTRating, type RetrieveSentimentAnalysisOutput } from "../api/shows/types.ts";
 
 export function Episode() {
 
     const navigate = useNavigate();
-    const [sentimentOpen, setSentimentOpen] = useState(true)
+    const [sentimentOpen, setSentimentOpen] = useState(false)
     const [communityOpen, setCommunityOpen] = useState(false)
     const [chatOpen, setChatOpen] = useState(false)
     const location = useLocation();
@@ -20,6 +21,9 @@ export function Episode() {
     const [rtLoading, setRtLoading] = useState(true)
     const [serializdLoading, setSerializdLoading] = useState(true)
 
+    const [sentimentData, setSentimentData] = useState<RetrieveSentimentAnalysisOutput | null>(null)
+    const [sentimentLoading, setSentimentLoading] = useState(true)
+
     const airDate = new Date(episodeData.episode_airdata);
     const today = new Date();
     const diffDays = Math.floor((today.getTime() - airDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -29,6 +33,15 @@ export function Episode() {
     : diffDays === 1 
     ? "Yesterday" 
     : `${diffDays} days ago`;
+
+    let positivePercent = 0, neutralPercent = 0, negativePercent = 0;
+    if (sentimentData) {
+        const total = sentimentData.positive + sentimentData.neutral + sentimentData.negative;
+        if (total > 0) {
+            positivePercent = Math.round((sentimentData.positive / total) * 100);
+            neutralPercent = Math.round((sentimentData.neutral / total) * 100);
+            negativePercent = Math.round((sentimentData.negative / total) * 100);
+    }}
 
     useEffect(() => {
         if (diffDays <= 3) {
@@ -47,6 +60,16 @@ export function Episode() {
                 setImdbLoading(false)
                 setRtLoading(false)
                 setSerializdLoading(false)
+            })
+    }, [])
+
+    useEffect(() => {
+        getOrGenerateSentiment(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+            .then(data => {
+                setSentimentData(data)
+            })
+            .finally(() => {
+                setSentimentLoading(false)
             })
     }, [])
     
@@ -126,29 +149,33 @@ export function Episode() {
                         </div>
                         {sentimentOpen && (
                             <div className="px-4 pb-4 border-t border-gray-100">
-                                <p className="text-gray-400 text-xs mt-4 mb-3">Based on reviews from online reviews</p>
-                                <div className="flex h-6 rounded-lg overflow-hidden">
-                                    <div className="bg-green-400 flex items-center justify-center text-white text-xs font-mono" style={{flex: 0.62}}>62%</div>
-                                    <div className="bg-gray-300 flex items-center justify-center text-gray-500 text-xs font-mono" style={{flex: 0.25}}>25%</div>
-                                    <div className="bg-red-400 flex items-center justify-center text-white text-xs font-mono" style={{flex: 0.13}}>13%</div>
-                                </div>
-                                <div className="flex gap-4 mt-3">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-green-400" />
-                                        <span className="text-gray-400 text-xs">Positive</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-gray-300" />
-                                        <span className="text-gray-400 text-xs">Neutral</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-2 h-2 rounded-full bg-red-400" />
-                                        <span className="text-gray-400 text-xs">Negative</span>
-                                    </div>
-                                </div>
-                                <p className="text-gray-500 text-xs italic mt-3 border-l-2 border-gray-200 pl-3">
-                                    "Combined Review Yap Yap Yap..."
-                                </p>
+                                {sentimentLoading || !sentimentData ? <RatingSpinner /> : (
+                                    <>
+                                    <p className="text-gray-400 text-xs mt-4 mb-3">Based on reviews from Imdb and Rotten Tomatoes</p>
+                                        <div className="flex h-6 rounded-lg overflow-hidden">
+                                        <div className="bg-green-400 flex items-center justify-center text-white text-xs font-mono" style={{ flex: positivePercent }} > {positivePercent}% </div>
+                                        <div className="bg-gray-300 flex items-center justify-center text-gray-500 text-xs font-mono" style={{ flex: neutralPercent }} > {neutralPercent}% </div>
+                                        <div className="bg-red-400 flex items-center justify-center text-white text-xs font-mono" style={{ flex: negativePercent }} > {negativePercent}% </div>
+                                        </div>
+                                        <div className="flex gap-4 mt-3">
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-2 h-2 rounded-full bg-green-400" />
+                                                <span className="text-gray-400 text-xs">Positive</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-2 h-2 rounded-full bg-gray-300" />
+                                                <span className="text-gray-400 text-xs">Neutral</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-2 h-2 rounded-full bg-red-400" />
+                                                <span className="text-gray-400 text-xs">Negative</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-gray-500 text-xs italic mt-3 border-l-2 border-gray-200 pl-3">
+                                            "{sentimentData.summary}"
+                                        </p>
+                                    </>
+                                )}   
                             </div>
                         )}
                     </div>
@@ -259,4 +286,3 @@ function RatingSpinner() {
 }
 
 export default Episode
-

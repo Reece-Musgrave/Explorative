@@ -44,3 +44,10 @@ export interface RetrieveRatingsOutput {
     serializd: string | null;
     ai_sent: string | null;
 }
+
+export interface RetrieveSentimentAnalysisOutput{
+    positive: number;
+    neutral: number;
+    negative: number;
+    summary: string;
+}
