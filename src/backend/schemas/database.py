@@ -85,5 +85,5 @@ class RatingOutput(BaseModel):
     episode_id: int
     imdb: str | None
     rt: str | None
-    serializd: int| None 
-    ai_sent: int | None 
+    serializd: str| None 
+    ai_sent: str | None 

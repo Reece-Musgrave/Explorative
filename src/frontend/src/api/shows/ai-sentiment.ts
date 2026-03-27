@@ -31,7 +31,7 @@ async function insertAISentiment(show: string, season: number, episode: number, 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            analysis: JSON.stringify({analysis}),
+            analysis: JSON.stringify(analysis),
             show,
             season,
             episode_number: episode,
