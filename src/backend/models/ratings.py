@@ -5,7 +5,7 @@ class Ratings(Base):
     __tablename__ = "ratings"
 
     id = Column(Integer, primary_key=True)
-    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False)
+    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False, unique=True)
     imdb = Column(String)
     rt = Column(String)
     serializd = Column(String)
