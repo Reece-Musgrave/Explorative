@@ -128,91 +128,100 @@ export function Home() {
               Search for a show, pick your episode, and start now.
             </p>
           </div>
+          <div className="flex flex-1 flex-col items-center justify-start pt-24 pb-16 px-10 gap-y-4">
 
-          <div className="flex flex-1 flex-col items-center justify-start pt-24 pb-16 gap-y-3">
-            <div className="relative flex w-full max-w-sm items-center justify-center gap-2 bg-white">
-              
-              <Input 
-                placeholder="What are you looking for?" 
-                value={showName} 
-                onChange={(e) => setShowName(e.target.value)} 
-              />
+          <div className="relative flex w-full max-w-sm items-center gap-2">
+            <Input
+              placeholder="What are you looking for?"
+              value={showName}
+              onChange={(e) => setShowName(e.target.value)}
+              className="bg-white border-gray-200"
+            />
+            {showSuggestions && (
+              <ul className="absolute top-full left-0 right-0 border border-gray-200 mt-1 rounded-lg bg-white shadow-sm max-h-40 overflow-y-auto z-50">
+                {suggestions.map((show) => (
+                  <li
+                    key={show.id}
+                    className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm text-gray-700"
+                    onClick={() => { setShowName(show.name); setShowSuggestions(false); }}
+                  >
+                    {show.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button
+              type="button"
+              onClick={handleSearchClick}
+              className="bg-gray-900 text-white hover:bg-gray-700 border-none font-mono font-semibold text-xs"
+            >
+              Search
+            </Button>
+          </div>
 
-              {showSuggestions && (
-                <ul className="absolute top-full left-0 right-0 border mt-1 rounded bg-white shadow-md max-h-40 overflow-y-auto z-50">
-                  {suggestions.map((show) => (
-                    <li 
-                      key={show.id} 
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        setShowName(show.name);
-                        setShowSuggestions(false);
-                      }} 
-                    >
-                      {show.name}
-                    </li>
-                  ))}
-                </ul>
+          {errorPopup && (
+            <Alert variant="destructive" className="max-w-sm">
+              <AlertTitle>Show not found — check the spelling?</AlertTitle>
+            </Alert>
+          )}
+
+          <hr className="w-full max-w-sm border-gray-200" />
+
+          {showSeasons && (
+            <div className="animate-slideIn flex items-center gap-4 w-full max-w-sm bg-white border border-gray-200 rounded-xl p-4">
+              {showData?.url && (
+                <img src={showData.url} className="w-12 h-16 object-cover rounded-md flex-shrink-0" />
               )}
-
-              <Button type="button" variant="outline" onClick={handleSearchClick}>
-                Search
-              </Button>
-            </div>
-
-            {errorPopup && (
-              <Alert variant="destructive" className="text-center max-w-md"> 
-                <AlertTitle>Sorry! Could not find that show. Did you type it correctly?</AlertTitle>
-              </Alert>
-            )}
-
-            {showSeasons && (
-              <div className="items-center justify-center">
-                <img src={showData?.url}/>
+              <div>
+                <p className="font-mono text-[9px] tracking-[3px] text-gray-400 mb-1">SHOW FOUND</p>
+                <p className="font-semibold text-gray-900 text-base m-0">{showName}</p>
+                {showData && (
+                  <p className="text-sm text-gray-400 m-0">
+                    {showData.seasons} season{showData.seasons !== 1 ? "s" : ""}
+                  </p>
+                )}
               </div>
-            )}
+            </div>
+          )}
 
-            {showSeasons && (
-              <div className="flex w-full max-w-sm items-center justify-center gap-2">     
+          {showSeasons && (
+            <div className="animate-slideIn flex flex-col gap-3 w-full max-w-sm">
+              <p className="font-mono text-[10px] tracking-[3px] text-gray-400">
+                SELECT SEASON &amp; EPISODE
+              </p>
+
+              <div className="flex gap-2">
                 <Popover open={openSeason} onOpenChange={setOpenSeason}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
                       aria-expanded={openSeason}
-                      className="w-[200px] justify-between"
+                      className="w-[152px] justify-between bg-white border-gray-200 text-gray-600"
                     >
-                      {valueSeason
-                        ? seasonOptions.find((s) => s.value === valueSeason)?.label
-                        : "Select Season..."}
-                      <ChevronsUpDown className="opacity-50" />
+                      {valueSeason ? seasonOptions.find((s) => s.value === valueSeason)?.label : "Season..."}
+                      <ChevronsUpDown className="opacity-40" />
                     </Button>
                   </PopoverTrigger>
-
-                  <PopoverContent className="w-[200px] p-0">
+                  <PopoverContent className="w-[152px] p-0">
                     <Command>
-                      <CommandInput placeholder="Search season..." className="h-9" />
+                      <CommandInput placeholder="Search..." className="h-9" />
                       <CommandList>
-                        <CommandEmpty>No Season found.</CommandEmpty>
+                        <CommandEmpty>No season found.</CommandEmpty>
                         <CommandGroup>
                           {seasonOptions.map((season) => (
                             <CommandItem
                               key={season.value}
-                              value={season.value.toString()} 
-                              onSelect={(currentValue) => {
-                                setValueSeason(Number(currentValue));
+                              value={season.value.toString()}
+                              onSelect={(v) => {
+                                setValueSeason(Number(v));
                                 setShowEpisodes(true);
                                 setValueEpisode("");
                                 setOpenSeason(false);
                               }}
                             >
                               {season.label}
-                              <Check
-                                className={cn(
-                                  "ml-auto",
-                                  valueSeason === season.value ? "opacity-100" : "opacity-0"
-                                )}
-                              />
+                              <Check className={cn("ml-auto", valueSeason === season.value ? "opacity-100" : "opacity-0")} />
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -228,40 +237,31 @@ export function Home() {
                         variant="outline"
                         role="combobox"
                         aria-expanded={openEpisode}
-                        className="w-[200px] justify-between"
+                        className="flex-1 justify-between bg-white border-gray-900 text-gray-900"
                       >
-                        {valueEpisode
-                          ? `Episode ${valueEpisode}`
-                          : "Select Episode..."}
-                        <ChevronsUpDown className="opacity-50" />
+                        {valueEpisode ? `Episode ${valueEpisode}` : "Episode..."}
+                        <ChevronsUpDown className="opacity-40" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="w-[180px] p-0">
                       <Command>
-                        <CommandInput placeholder="Search episode..." className="h-9" />
+                        <CommandInput placeholder="Search..." className="h-9" />
                         <CommandList>
-                          <CommandEmpty>No Episode found.</CommandEmpty>
+                          <CommandEmpty>No episode found.</CommandEmpty>
                           <CommandGroup>
                             {episodeOptions.map((episode) => (
                               <CommandItem
                                 key={episode.value}
                                 value={episode.value.toString()}
-                                onSelect={(currentValue) => {
-                                  setValueEpisode(currentValue);
+                                onSelect={(v) => {
+                                  setValueEpisode(v);
                                   setOpenEpisode(false);
-                                  handleSelection(currentValue);
+                                  handleSelection(v);
                                   setShowGo(true);
                                 }}
                               >
                                 {episode.label}
-                                <Check
-                                  className={cn(
-                                    "ml-auto",
-                                    valueEpisode === episode.value.toString()
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
+                                <Check className={cn("ml-auto", valueEpisode === episode.value.toString() ? "opacity-100" : "opacity-0")} />
                               </CommandItem>
                             ))}
                           </CommandGroup>
@@ -270,16 +270,19 @@ export function Home() {
                     </PopoverContent>
                   </Popover>
                 )}
-
-                {showGo && (
-                  <Button variant="outline" onClick={() => {
-                    navigate("/episode", { state: selectionString });
-                  }}>Let's Go!</Button>
-                )}
               </div>
+
+              {showGo && (
+                <Button
+                  className="animate-slideIn w-full bg-gray-900 hover:bg-gray-700 text-white border-none font-mono font-semibold text-xs tracking-widest py-6 rounded-lg"
+                  onClick={() => navigate("/episode", { state: selectionString })}
+                >
+                  LET'S GO →
+                </Button>
+              )}
+            </div>
             )}
           </div>
-
         </div>
       </div>
     );
