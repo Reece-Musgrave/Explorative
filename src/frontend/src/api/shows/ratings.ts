@@ -1,6 +1,6 @@
 import { type RetrieveRatingsOutput , type IMDBRating, type RTRating} from "./types"
 
-export async function retrieveRatings(show: string, season: number, episode: number): Promise<RetrieveRatingsOutput> {
+export async function retrieveAllRatings(show: string, season: number, episode: number): Promise<RetrieveRatingsOutput> {
     const responseRatingsCall = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
     let id, episode_id, imdb, rt, serializd, ai_sent;
 
@@ -15,6 +15,44 @@ export async function retrieveRatings(show: string, season: number, episode: num
     if(!serializd) serializd = await insertRating("serializd", show, season, episode)
 
     return { id, episode_id, imdb, rt, serializd, ai_sent }
+}
+
+export async function retrieveRTRating(show: string, season: number, episode: number): Promise<RTRating> {
+    const response = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
+    let id, episode_id, imdb, rt, serializd, ai_sent;
+    
+    if (response.ok){
+        ({ id, episode_id, imdb, rt, serializd, ai_sent } = await response.json());
+        if (rt) rt = JSON.parse(rt)
+    }
+    
+    if(!rt) rt = await insertRating("rt", show, season, episode)
+    return (rt)
+}
+
+export async function retrieveSerializdRating(show: string, season: number, episode: number): Promise<string> {
+    const response = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
+    let id, episode_id, imdb, rt, serializd, ai_sent;
+    
+    if (response.ok){
+        ({ id, episode_id, imdb, rt, serializd, ai_sent } = await response.json());
+    }
+    
+    if(!serializd) serializd = await insertRating("serializd", show, season, episode)
+    return (serializd)
+}
+
+export async function retrieveIMDBRating(show: string, season: number, episode: number): Promise<IMDBRating> {
+    const response = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
+    let id, episode_id, imdb, rt, serializd, ai_sent;
+    
+    if (response.ok){
+        ({ id, episode_id, imdb, rt, serializd, ai_sent } = await response.json());
+        if (imdb) imdb = JSON.parse(imdb)
+    }
+    
+    if(!imdb) imdb = await insertRating("imdb", show, season, episode)
+    return (imdb)
 }
 
 async function insertRating(method: string, show: string, season: number, episode: number): Promise<string>{

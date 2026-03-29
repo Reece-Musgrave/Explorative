@@ -1,6 +1,6 @@
 import Navbar from "../components/layout/navbar.tsx"
 import { useState, useEffect } from "react"
-import { retrieveRatings } from "../api/shows/ratings.ts";
+import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "../api/shows/ratings.ts";
 import { getOrGenerateSentiment } from "../api/shows/ai-sentiment.ts";
 import { useLocation, useNavigate} from "react-router-dom";
 import { type RetrieveEpisodeOutput, type IMDBRating, type RTRating, type RetrieveSentimentAnalysisOutput } from "../api/shows/types.ts";
@@ -50,17 +50,21 @@ export function Episode() {
     }, [diffDays])
 
     useEffect(() => {
-        retrieveRatings(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
-            .then(data => {
-                setImdbRating(data.imdb)
-                setRtRating(data.rt)
-                setSerializdRating(data.serializd)
-            })
-            .finally(() => {
-                setImdbLoading(false)
-                setRtLoading(false)
-                setSerializdLoading(false)
-            })
+        retrieveIMDBRating(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+            .then(data => setImdbRating(data))
+            .finally(() => setImdbLoading(false))
+    }, [])
+    
+    useEffect(() => {
+        retrieveRTRating(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+            .then(data => setRtRating(data))
+            .finally(() => setRtLoading(false))
+    }, [])
+    
+    useEffect(() => {
+        retrieveSerializdRating(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+            .then(data => setSerializdRating(data))
+            .finally(() => setSerializdLoading(false))
     }, [])
 
     useEffect(() => {
