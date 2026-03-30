@@ -1,8 +1,6 @@
 services:
   backend:
     image: ghcr.io/reece-musgrave/backend:latest
-    build: null  
 
   frontend:
     image: ghcr.io/reece-musgrave/frontend:latest
-    build: null   
