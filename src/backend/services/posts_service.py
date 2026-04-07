@@ -26,9 +26,12 @@ def insert_post(db: Session, message: str, username: str, show_name: str, season
     )
     db.add(new_post)
     db.commit()
+    db.refresh(new_post)
+
+    return new_post
     
 
-def retrieve_post(db: Session, show_name: str, season_number: int, episode_number: int, range: list[int]):
+def retrieve_post(db: Session, show_name: str, season_number: int, episode_number: int, slice_range: list[int]):
     episode = (
         db.query(Episodes)
         .join(Episodes.seasons)
@@ -43,4 +46,4 @@ def retrieve_post(db: Session, show_name: str, season_number: int, episode_numbe
 
     posts = db.query(Posts).filter(Posts.episode_id == episode.id).all()
 
-    return posts[range[0]: range[1]]
+    return posts[slice_range[0]: slice_range[1]]
