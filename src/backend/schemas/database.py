@@ -87,3 +87,11 @@ class RatingOutput(BaseModel):
     rt: str | None
     serializd: str| None 
     ai_sent: str | None 
+
+class PostOutput(BaseModel):
+    id: int 
+    episode_id: int
+    message: str
+    username: str
+    timestamp: str
+    post_type: str
