@@ -5,7 +5,7 @@ from backend.models.seasons import Seasons
 from backend.models.episodes import Episodes
 from backend.models.posts import Posts
 
-def insert_post(db: Session, message: str, username: str, show_name: str, season_number: int, episode_number: int, post_type: str):
+def create_post(db: Session, message: str, username: str, show_name: str, season_number: int, episode_number: int, post_type: str):
     episode = (
         db.query(Episodes)
         .join(Episodes.seasons)
@@ -31,7 +31,7 @@ def insert_post(db: Session, message: str, username: str, show_name: str, season
     return new_post
     
 
-def retrieve_post(db: Session, show_name: str, season_number: int, episode_number: int, slice_range: list[int]):
+def get_posts(db: Session, show_name: str, season_number: int, episode_number: int, slice_range: list[int]):
     episode = (
         db.query(Episodes)
         .join(Episodes.seasons)
