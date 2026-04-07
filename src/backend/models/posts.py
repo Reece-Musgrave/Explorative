@@ -9,7 +9,6 @@ class Posts(Base):
     episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=False)
     message = Column(String)
     username = Column(String)
-    timestamp = Column(String)
     post_type = Column(String)
     
 

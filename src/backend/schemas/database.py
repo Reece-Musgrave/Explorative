@@ -93,5 +93,4 @@ class PostOutput(BaseModel):
     episode_id: int
     message: str
     username: str
-    timestamp: str
     post_type: str
