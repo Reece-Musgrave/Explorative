@@ -51,3 +51,12 @@ export interface RetrieveSentimentAnalysisOutput{
     negative: number;
     summary: string;
 }
+
+{/* Object to store frontend Post data */}
+export interface PostOutput{
+    id: number;
+    episode_id: number;
+    message: string;
+    username: string;
+    post_type: string;
+}

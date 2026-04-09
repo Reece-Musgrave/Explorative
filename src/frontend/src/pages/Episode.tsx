@@ -4,8 +4,11 @@ import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from ".
 import { getOrGenerateSentiment } from "../api/shows/ai-sentiment.ts";
 import { useLocation, useNavigate} from "react-router-dom";
 import { type RetrieveEpisodeOutput, type IMDBRating, type RTRating, type RetrieveSentimentAnalysisOutput } from "../api/shows/types.ts";
+import { useAuth } from "..//context/authContext";
 
 export function Episode() {
+
+    const { accessToken, logout, username } = useAuth();
 
     const navigate = useNavigate();
     const [sentimentOpen, setSentimentOpen] = useState(false)
