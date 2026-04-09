@@ -4,6 +4,7 @@ interface AuthContextType {
   accessToken: string | null;
   login: (token: string) => void;
   logout: () => void;
+  username: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,8 +37,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAccessToken(null);
   };
 
+  const decodeToken = (token: string): { sub: string } | null => {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch {
+      return null;
+    }
+  };
+
+  const username = accessToken ? decodeToken(accessToken)?.sub ?? null : null;
+
   return (
-    <AuthContext.Provider value={{ accessToken, login, logout }}>
+    <AuthContext.Provider value={{ accessToken, login, logout, username }}>
       {children}
     </AuthContext.Provider>
   );
