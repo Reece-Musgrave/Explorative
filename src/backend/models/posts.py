@@ -12,4 +12,4 @@ class Posts(Base):
     post_type = Column(String)
     
 
-    episodes = relationship("Episodes", back_populates="posts")
+    episode = relationship("Episodes", back_populates="posts")

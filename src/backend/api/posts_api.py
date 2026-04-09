@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from backend.db.session import get_db
@@ -8,24 +8,24 @@ from backend.schemas.database import PostOutput
 router = APIRouter()
 
 
-@router.get("/api/v1/posts/retrieve-post/{show_name}/{season_number}/{episode_number}/{range}")
-async def retrieve_posts(show_name: str, season_number: int, episode_number: int, post_range: list[str], db: Session = Depends(get_db)):
-    posts = get_posts(show_name, season_number, episode_number, post_range, db)
+@router.get("/api/v1/posts/retrieve-post/{show_name}/{season_number}/{episode_number}")
+async def retrieve_posts(show_name: str, season_number: int, episode_number: int, post_range: list[int] = Query(...), db: Session = Depends(get_db)):
+    posts = get_posts(db, show_name, season_number, episode_number, post_range)
     if not posts:
         raise HTTPException(status_code=404)
 
     return [
         PostOutput(
-            id=r[0],
-            episode_id=r[1],
-            message=r[2],
-            username=r[3],
-            post_type=r[4]
+            id=r.id,
+            episode_id=r.episode_id,
+            message=r.message,
+            username=r.username,
+            post_type=r.post_type
         )
         for r in posts
     ]
 
-@router.post("api/v1/posts/insert-post")
+@router.post("/api/v1/posts/insert-post")
 async def insert_post(message: str, username: str, show_name: str, season_number: int, episode_number: int, post_type: str, db: Session = Depends(get_db)):
     try:
         post = create_post(db, message, username, show_name, season_number, episode_number, post_type)

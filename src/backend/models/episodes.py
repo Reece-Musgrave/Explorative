@@ -12,3 +12,4 @@ class Episodes(Base):
     air_date = Column(String)
 
     seasons = relationship("Seasons", back_populates="episodes")
+    posts = relationship("Posts", back_populates="episode")
