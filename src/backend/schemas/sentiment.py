@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class SentimentInput(BaseModel):
+class SentimentCreate(BaseModel):
     reviews: str
 
 class SentimentOutput(BaseModel):
@@ -9,7 +9,7 @@ class SentimentOutput(BaseModel):
     negative: int
     summary: str
 
-class SemtimentDBInput(BaseModel):
+class SentimentDBCreate(BaseModel):
     analysis: str
     show: str
     season: int

@@ -2,7 +2,9 @@ from fastapi import APIRouter, HTTPException ,Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from backend.db.session import get_db
-from backend.schemas.database import RetrieveShowOutput, NShowOutput, RetrieveEpisodeTimestampInput, InsertShowInput, InsertSeasonInput, InsertEpisodeInput, RetrieveSeasonOutput, EpisodeOutput
+from backend.schemas.show import ShowOutput, ShowSummary, ShowCreate
+from backend.schemas.episode import EpisodeTimestampCreate, EpisodeCreate, EpisodeOutput
+from backend.schemas.season import SeasonCreate, SeasonOutput
 from backend.services.database_service import get_show, get_n_shows, get_episode_timestamp, create_show, create_season, create_episodes, get_seasons, get_episodes_by_season 
 
 router = APIRouter()
@@ -13,7 +15,7 @@ async def retrieve_show(show_name, db: Session = Depends(get_db)):
     if not show:
         raise HTTPException(status_code=404)
 
-    return RetrieveShowOutput(
+    return ShowOutput(
         id=show.id,
         name=show.name,
         maze_id=show.tvmaze_id,
@@ -25,7 +27,7 @@ async def retrieve_n_shows(show_string, db: Session = Depends(get_db)):
     output = get_n_shows(db, show_string, 5)
 
     return [
-        NShowOutput(
+        ShowSummary(
             id=r[0],
             name=r[1],
             maze_id=r[2],
@@ -36,7 +38,7 @@ async def retrieve_n_shows(show_string, db: Session = Depends(get_db)):
 @router.get(
         "/api/v1/database/retrieve-episode-air_date",
         response_model=str)
-async def retrieve_episode_air_date(data: RetrieveEpisodeTimestampInput = Depends(), db: Session = Depends(get_db)):
+async def retrieve_episode_air_date(data: EpisodeTimestampCreate = Depends(), db: Session = Depends(get_db)):
     output = get_episode_timestamp(db, data.show_name, data.season_number, data.episode_name)
     
     if output == None:
@@ -45,7 +47,7 @@ async def retrieve_episode_air_date(data: RetrieveEpisodeTimestampInput = Depend
     return output
 
 @router.put("/api/v1/database/insert-show", status_code=204)
-def insert_show(data: InsertShowInput, db: Session = Depends(get_db)):
+def insert_show(data: ShowCreate, db: Session = Depends(get_db)):
     try:
         create_show(db, data.name, data.maze_id, data.url)
     except IntegrityError:
@@ -54,14 +56,14 @@ def insert_show(data: InsertShowInput, db: Session = Depends(get_db)):
 
 
 @router.put("/api/v1/database/insert-season", status_code=204)
-async def insert_season(data: InsertSeasonInput, db: Session = Depends(get_db)):
+async def insert_season(data: SeasonCreate, db: Session = Depends(get_db)):
     try:
         create_season(db, data.show_id, data.season_number, data.episode_number)
     except IntegrityError:
         raise HTTPException(status_code=409)
 
 @router.put("/api/v1/database/insert-episode", status_code=204)
-async def insert_episode(data: InsertEpisodeInput, db: Session = Depends(get_db)):
+async def insert_episode(data: EpisodeCreate, db: Session = Depends(get_db)):
     try: 
         create_episodes(db, data.season_id, data.episode_number, data.title, data.air_date) 
     except IntegrityError:
@@ -77,7 +79,7 @@ async def retrieve_season(show_id, db: Session = Depends(get_db)):
     outputArray = []
     for season in output:
         outputArray.append(
-            RetrieveSeasonOutput(
+            SeasonOutput(
                 id=season.id,
                 season_number=season.season_number,
                 number_episodes=season.number_episodes

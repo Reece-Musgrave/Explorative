@@ -7,7 +7,7 @@ from backend.services.ratings_service import get_episode_rating_from_db
 from backend.services.external_ratings.imdb_ratings_service import get_episode_rating_from_imdb, insert_episode_rating_from_imdb_to_db
 from backend.services.external_ratings.rottentomatoes_ratings_service import get_episode_rating_from_rt, insert_episode_rating_from_rt_to_db
 from backend.services.external_ratings.serializd_ratings_service import get_episode_rating_from_serializd, insert_episode_rating_from_serializd_to_db
-from backend.schemas.database import RatingInputIMDB, RatingInputRT,RatingInputSerializd, RatingOutput
+from backend.schemas.ratings import RatingOutput, RTRatingCreate, IMDBRatingCreate, SerializdRatingCreate
 
 router = APIRouter()
 
@@ -50,7 +50,7 @@ async def retrieve_serializd(show: str, season: int, episode: int):
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.put("/api/v1/ratings/insert-imdb-rating", status_code=204)
-async def insert_imdb_rating(data: RatingInputIMDB, db: Session = Depends(get_db)):
+async def insert_imdb_rating(data: IMDBRatingCreate, db: Session = Depends(get_db)):
     try:
         insert_episode_rating_from_imdb_to_db(db, data.show, data.season, data.episode, data.rating.model_dump_json())
     except IntegrityError:
@@ -58,7 +58,7 @@ async def insert_imdb_rating(data: RatingInputIMDB, db: Session = Depends(get_db
         raise HTTPException(status_code=409)
 
 @router.put("/api/v1/ratings/insert-rt-rating", status_code=204)
-async def insert_rt_rating(data: RatingInputRT, db: Session = Depends(get_db)):
+async def insert_rt_rating(data: RTRatingCreate, db: Session = Depends(get_db)):
     try:
         insert_episode_rating_from_rt_to_db(db, data.show, data.season, data.episode, data.rating.model_dump_json())
     except IntegrityError:
@@ -66,7 +66,7 @@ async def insert_rt_rating(data: RatingInputRT, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409)
 
 @router.put("/api/v1/ratings/insert-serializd-rating", status_code=204)
-async def insert_serializd_rating(data: RatingInputSerializd, db: Session = Depends(get_db)):
+async def insert_serializd_rating(data: SerializdRatingCreate, db: Session = Depends(get_db)):
     try:
         insert_episode_rating_from_serializd_to_db(db, data.show, data.season, data.episode, data.rating)
     except IntegrityError:

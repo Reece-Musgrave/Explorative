@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from backend.db.session import get_db
 from backend.services.posts_service import get_posts, create_post
-from backend.schemas.database import PostOutput
+from backend.schemas.posts import PostOutput
 
 router = APIRouter()
 

@@ -4,7 +4,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from backend.auth.dependencies import get_current_active_user
 from backend.auth.hashing import get_password_hash
 from backend.auth.jwt import create_access_token
 from backend.auth.service import authenticate_user

@@ -3,13 +3,13 @@ from sqlalchemy.orm import Session
 from backend.db.session import get_db
 from backend.services.sentiment_review.sentiment_analysis import get_ai_sentiment_analysis, insert_ai_sentiment_analysis_for_episode, get_ai_sentiment_analysis_from_db
 from backend.services.sentiment_review.review_processing import get_reviews_from_imdb, get_reviews_from_rt, format_and_truncate_reviews
-from backend.schemas.sentiment import SentimentInput, SentimentOutput, SemtimentDBInput
+from backend.schemas.sentiment import SentimentCreate, SentimentOutput, SentimentDBCreate
 import asyncio
 
 router = APIRouter()
 
 @router.post("/api/v1/ai/retrieve-sentiment-analysis")
-async def retrieve_sentiment_analysis(data: SentimentInput) -> SentimentOutput:
+async def retrieve_sentiment_analysis(data: SentimentCreate) -> SentimentOutput:
     try:
         result = get_ai_sentiment_analysis(data.reviews)
         return SentimentOutput(**result)
@@ -17,7 +17,7 @@ async def retrieve_sentiment_analysis(data: SentimentInput) -> SentimentOutput:
         raise HTTPException(status_code=500, detail="Failed to generate sentiment analysis")
 
 @router.post("/api/v1/ai/insert-sentiment-analysis")
-async def insert_sentiment_analysis(data: SemtimentDBInput, db: Session = Depends(get_db)):
+async def insert_sentiment_analysis(data: SentimentDBCreate, db: Session = Depends(get_db)):
     try:    
         insert_ai_sentiment_analysis_for_episode(db, data.analysis, data.show, data.season, data.episode_number)
     except Exception as e:

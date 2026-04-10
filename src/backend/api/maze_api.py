@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
-from backend.schemas.database import ShowOutput, EpisodeOutput
+from backend.schemas.show import ShowOutput
+from backend.schemas.episode import EpisodeOutput
 from backend.services.maze_service import get_maze_service
 from backend.core.exceptions import APIError
 
