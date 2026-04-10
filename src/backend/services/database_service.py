@@ -43,6 +43,9 @@ def create_show(db: Session, show_name: str, maze_id: int, poster_url: str):
 
     db.add(new_show)
     db.commit()
+    db.refresh(new_show)
+
+    return new_show
 
 def create_season(db: Session, show_id: int, season_number: int, number_episodes: int):
     new_season = Seasons(
@@ -52,6 +55,9 @@ def create_season(db: Session, show_id: int, season_number: int, number_episodes
     )
     db.add(new_season)
     db.commit()
+    db.refresh(new_season)
+
+    return new_season
 
 def create_episodes(db: Session, season_id: int, episode_number: int, title: str, air_date: int):
     new_episode = Episodes(
@@ -62,6 +68,9 @@ def create_episodes(db: Session, season_id: int, episode_number: int, title: str
     )
     db.add(new_episode)
     db.commit()
+    db.refresh(new_episode)
+
+    return new_episode
 
 def get_seasons(db: Session, show_id: str):
     return (

@@ -42,12 +42,15 @@ def insert_episode_rating_from_imdb_to_db(db: Session, show: str, season: int, e
 
     if existing_rating:
         existing_rating.imdb = rating
+        db.commit()
+        db.refresh(existing_rating)
+        return existing_rating
     else:
         new_rating = Ratings(
             episode_id=episode.id,
             imdb=rating
         )
         db.add(new_rating)
-
-    db.commit()
-                        
+        db.commit()
+        db.refresh(new_rating)
+        return new_rating                        

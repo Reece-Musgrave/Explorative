@@ -67,6 +67,9 @@ def insert_ai_sentiment_analysis_for_episode(db: Session, analysis: str, show: s
         existing_rating.ai_sent = analysis
     
     db.commit()
+    db.refresh(existing_rating)
+
+    return existing_rating
 
 def get_ai_sentiment_analysis_from_db(db: Session, show: str, season: int, episode_number: int):
     episode = (

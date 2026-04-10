@@ -59,11 +59,17 @@ def insert_episode_rating_from_serializd_to_db(db: Session, show: str, season: i
 
     if existing_rating:
         existing_rating.serializd  = rating
+        db.commit()
+        db.refresh(existing_rating)
+        return existing_rating
     else:
         new_rating = Ratings(
             episode_id=episode.id,
             serializd=rating
         )
         db.add(new_rating)
+        db.commit()
+        db.refresh(new_rating)
+        return new_rating
 
-    db.commit()
+    

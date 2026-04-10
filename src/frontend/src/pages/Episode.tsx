@@ -98,7 +98,7 @@ export function Episode() {
                     episodeData.episode_number,
                     [0, 3]
                 );
-                setPosts([...data].reverse());
+                setPosts([...data]);
                 setNumberOfPosts(3);
                 if (data.length < 3) setNoMorePosts(true);
             } catch {
