@@ -9,20 +9,20 @@ export async function insertPost(
     episode_number: number, 
     post_type: string): Promise<PostOutput>{
 
-        const data = {
-            message: message,
-            username: username,
-            show_name: show_name,
-            season_number: season_number,
-            episode_number: episode_number,
-            post_type: post_type
-        };
-        const response = await fetch(`/api/v1/posts/insert-post`, {
-            method: "PUT",
+        const params = new URLSearchParams({
+            message,
+            username,
+            show_name,
+            season_number: season_number.toString(),
+            episode_number: episode_number.toString(),
+            post_type
+        });
+
+        const response = await fetch(`/api/v1/posts/insert-post?${params}`, {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
+            }
         });
 
         if (response.ok){

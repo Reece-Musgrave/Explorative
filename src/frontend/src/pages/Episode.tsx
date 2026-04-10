@@ -3,14 +3,21 @@ import { useState, useEffect } from "react"
 import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "../api/shows/ratings.ts";
 import { getOrGenerateSentiment } from "../api/shows/ai-sentiment.ts";
 import { useLocation, useNavigate} from "react-router-dom";
-import { type RetrieveEpisodeOutput, type IMDBRating, type RTRating, type RetrieveSentimentAnalysisOutput } from "../api/shows/types.ts";
-import { useAuth } from "..//context/authContext";
+import { type RetrieveEpisodeOutput, type IMDBRating, type RTRating, type RetrieveSentimentAnalysisOutput, type PostOutput } from "../api/shows/types.ts";
+import { insertPost, retrievePosts } from "@/api/shows/posts.ts";
+import { useAuth } from "../context/authContext";
 
 export function Episode() {
 
-    const { accessToken, logout, username } = useAuth();
-
+    const { username } = useAuth();
     const navigate = useNavigate();
+   
+    const [numberOfPosts, setNumberOfPosts] = useState(0)
+    const [noMorePosts, setNoMorePosts] = useState(false)
+    const [newMessage, setNewMessage] = useState("")
+    const [isPosting, setIsPosting] = useState(false)
+    const [posts, setPosts] = useState<PostOutput[] | null>(null)
+
     const [sentimentOpen, setSentimentOpen] = useState(false)
     const [communityOpen, setCommunityOpen] = useState(false)
     const [chatOpen, setChatOpen] = useState(false)
@@ -79,6 +86,69 @@ export function Episode() {
                 setSentimentLoading(false)
             })
     }, [])
+
+    const handleCommunityClick = async () => {
+        const opening = !communityOpen;
+        setCommunityOpen(opening);
+        if (opening && posts === null) {
+            try {
+                const data = await retrievePosts(
+                    episodeData.show_name,
+                    episodeData.season_number,
+                    episodeData.episode_number,
+                    [0, 3]
+                );
+                setPosts([...data].reverse());
+                setNumberOfPosts(3);
+                if (data.length < 3) setNoMorePosts(true);
+            } catch {
+                setPosts([]);
+                setNoMorePosts(true);
+            }
+        }
+    };
+    
+    const handleGetMore = async () => {
+        try {
+            const data = await retrievePosts(
+                episodeData.show_name,
+                episodeData.season_number,
+                episodeData.episode_number,
+                [numberOfPosts, numberOfPosts + 3]
+            );
+            if (data.length === 0) {
+                setNoMorePosts(true);
+            } else {
+                setPosts(prev => [...(prev ?? []), ...data]);
+                setNumberOfPosts(n => n + data.length);
+                if (data.length < 3) setNoMorePosts(true);
+            }
+        } catch {
+            setNoMorePosts(true);
+        }
+    };
+    
+    const handleSubmitPost = async () => {
+        if (!newMessage.trim() || !username || isPosting) return;
+        setIsPosting(true);
+        try {
+            const post = await insertPost(
+                newMessage.trim(),
+                username,
+                episodeData.show_name,
+                episodeData.season_number,
+                episodeData.episode_number,
+                "text"
+            );
+            setPosts(prev => [post, ...(prev ?? [])]);
+            setNewMessage("");
+            setNumberOfPosts(n => n + 1);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsPosting(false);
+        }
+    };
     
     return (
         <div className="bg-gray-50 min-h-screen">
@@ -189,36 +259,78 @@ export function Episode() {
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
                         <div
                             className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                            onClick={() => setCommunityOpen(!communityOpen)}
+                            onClick={handleCommunityClick}
                         >
                             <p className="text-gray-900 font-mono text-sm">Community & Media</p>
                             <span className="text-gray-400 text-xs">{communityOpen ? "▴" : "▾"}</span>
                         </div>
                         {communityOpen && (
                             <div className="px-4 pb-4 border-t border-gray-100">
-                                <div className="flex gap-2 mt-4 mb-3">
-                                    <span className="px-3 py-1 rounded-full bg-blue-500 text-white text-xs font-mono cursor-pointer">Reddit</span>
-                                    <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-mono cursor-pointer hover:bg-gray-200 transition-colors">Twitter</span>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <div className="w-6 h-6 rounded-full bg-gray-200" />
-                                            <span className="text-gray-400 text-xs font-mono">r/breakingbad · 4h ago</span>
-                                            <span className="ml-auto text-blue-500 text-xs font-mono">▲ 1.2k</span>
+                                {/* Post input */}
+                                {username ? (
+                                    <div className="mt-4 flex flex-col gap-2">
+                                        <textarea
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-700 outline-none placeholder:text-gray-400 resize-none focus:border-blue-300 transition-colors"
+                                            placeholder="Share your thoughts on this episode..."
+                                            rows={3}
+                                            maxLength={300}
+                                            value={newMessage}
+                                            onChange={e => setNewMessage(e.target.value)}
+                                        />
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-400 text-xs font-mono">{newMessage.length}/300</span>
+                                            <button
+                                                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 transition-colors text-white text-xs font-mono px-4 py-1.5 rounded-full"
+                                                onClick={handleSubmitPost}
+                                                disabled={!newMessage.trim() || isPosting}
+                                            >
+                                                {isPosting ? "Posting..." : "Post"}
+                                            </button>
                                         </div>
-                                        <p className="text-gray-700 text-xs leading-relaxed">Reddit post content example.</p>
                                     </div>
-                                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <div className="w-5 h-5 rounded bg-gray-200" />
-                                            <span className="text-gray-400 text-xs font-mono">Meme · Image</span>
-                                            <span className="ml-auto text-orange-400 text-xs">🔥 hot</span>
-                                        </div>
-                                        <div className="w-full h-24 bg-gray-200 rounded-lg flex items-center justify-center">
-                                            <span className="text-gray-400 text-xs font-mono">[ image ]</span>
-                                        </div>
-                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 text-xs mt-4 font-mono text-center">
+                                        Log in to leave a comment
+                                    </p>
+                                )}
+
+                                {/* Posts list */}
+                                <div className="flex flex-col gap-3 mt-4">
+                                    {posts === null ? (
+                                        <RatingSpinner />
+                                    ) : posts.length === 0 && noMorePosts ? (
+                                        <p className="text-gray-400 text-xs font-mono text-center py-2">
+                                            No posts yet. Be the first!
+                                        </p>
+                                    ) : (
+                                        <>
+                                            {posts.map(post => (
+                                                <div key={post.id} className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                                                    <span className="text-blue-500 text-xs font-mono font-semibold">
+                                                        {post.username}
+                                                    </span>
+                                                    <p className="text-gray-700 text-xs leading-relaxed mt-1">
+                                                        {post.message}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                            {noMorePosts ? (
+                                                <button
+                                                    className="w-full py-2 rounded-lg border border-dashed border-gray-200 text-gray-300 font-mono text-xs cursor-default"
+                                                    disabled
+                                                >
+                                                    No more posts to load
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="w-full py-2 rounded-lg border border-dashed border-gray-300 text-gray-400 font-mono text-xs hover:border-blue-400 hover:text-blue-400 transition-colors"
+                                                    onClick={handleGetMore}
+                                                >
+                                                    Get More
+                                                </button>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         )}
