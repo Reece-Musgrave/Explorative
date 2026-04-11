@@ -13,3 +13,8 @@ class ShowSummary(ShowBase):
 class ShowOutput(ShowBase):
     id: int
     url: str
+
+class MazeShowOutput(BaseModel):
+    id: int
+    name: str
+    poster_url: str

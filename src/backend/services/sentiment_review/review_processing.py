@@ -1,5 +1,5 @@
 import httpx
-from playwright.async_api import async_playwright
+from backend.services.utils.browser_manager import new_page
 
 
 base_url_imdb_api = "https://api.imdbapi.dev"
@@ -19,11 +19,10 @@ async def get_reviews_from_imdb(show: str, season: int, episode: int, review_cou
                 episode_id = episodes["episodes"][episode - 1]["id"]
                 review_url = f"{base_url_imdb}/title/{episode_id}/reviews/?ref_=tt_ururv_sm"
 
-                async with async_playwright() as p:
-                    browser = await p.chromium.launch()
-                    page = await browser.new_page(extra_http_headers={
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                    })
+                page = await new_page(extra_http_headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                })
+                try:
                     await page.goto(review_url)
                     await page.wait_for_timeout(3000)
 
@@ -32,7 +31,7 @@ async def get_reviews_from_imdb(show: str, season: int, episode: int, review_cou
                         await button.click()
                         await page.wait_for_timeout(500)
                     await page.wait_for_timeout(2000)
-                    
+
                     review_elements = await page.query_selector_all("div.ipc-overflowText--long")
                     spoiler_elements = await page.query_selector_all("[data-testid='review-spoiler-content']")
 
@@ -42,32 +41,32 @@ async def get_reviews_from_imdb(show: str, season: int, episode: int, review_cou
                         reviews.append(text)
                         if len(reviews) == review_count:
                             break
-                    
-                    await browser.close()
                     return reviews
+                finally:
+                    await page.close()
 
-async def get_reviews_from_rt(show: str, season: int, episode: int, review_count = 20):
+
+async def get_reviews_from_rt(show: str, season: int, episode: int, review_count=20):
     show_string = show.replace(" ", "_").lower()
     search_url = f"{base_url_rt}/tv/{show_string}/s{str(season).zfill(2)}/e{str(episode).zfill(2)}/reviews"
-  
-    async with async_playwright() as p:
-            browser = await p.chromium.launch()
-            page = await browser.new_page(extra_http_headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            })
-            await page.goto(search_url)
-            await page.wait_for_timeout(3000)
-            review_elements = await page.query_selector_all('div[slot="review"]')
-            
-            reviews = []
-            for el in review_elements:
-                text = await el.inner_text()
-                reviews.append(text)
-                if len(reviews) == review_count:
-                    break
-            
-            await browser.close()
-            return reviews
+
+    page = await new_page(extra_http_headers={
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    })
+    try:
+        await page.goto(search_url)
+        await page.wait_for_timeout(3000)
+        review_elements = await page.query_selector_all('div[slot="review"]')
+
+        reviews = []
+        for el in review_elements:
+            text = await el.inner_text()
+            reviews.append(text)
+            if len(reviews) == review_count:
+                break
+        return reviews
+    finally:
+        await page.close()
 
 def format_and_truncate_reviews(imdb, rt, max_words = 200):
     def truncate(text):

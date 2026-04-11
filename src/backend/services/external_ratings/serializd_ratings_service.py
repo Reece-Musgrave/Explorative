@@ -1,11 +1,11 @@
 from backend.core.exceptions import NotFoundError
-from playwright.async_api import async_playwright
 from sqlalchemy.orm import Session
 from backend.core.exceptions import NotFoundError
 from backend.models.shows import Shows
 from backend.models.seasons import Seasons
 from backend.models.episodes import Episodes
 from backend.models.ratings import Ratings
+from backend.services.utils.browser_manager import new_page
 
 base_url_serializd = "https://www.serializd.com"
 
@@ -13,9 +13,8 @@ async def get_episode_rating_from_serializd(show, season, episode):
     show_string = show.replace(" ", "%20")
     search_url = f"{base_url_serializd}/search?searchQuery={show_string}"
     try:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch()
-            page = await browser.new_page()
+        page = await new_page()
+        try:
             await page.goto(search_url)
             await page.wait_for_selector("a.search-result-show-name")
 
@@ -31,12 +30,10 @@ async def get_episode_rating_from_serializd(show, season, episode):
             await page.wait_for_timeout(6000)
             await page.wait_for_selector("a[href*='/episode/']")
             episode_links = await page.query_selector_all(f'a[href*="/episode/{episode}"]')
-            episode_link = episode_links[1]
-            rating = await episode_link.query_selector("span")
-            result = await rating.inner_text()
-
-            await browser.close()
-            return result
+            rating = await episode_links[1].query_selector("span")
+            return await rating.inner_text()
+        finally:
+            await page.close()
 
     except Exception as e:
         raise NotFoundError(f"Unable to scrape Serializd rating for episode, it may not exist")

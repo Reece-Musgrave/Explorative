@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from backend.schemas.show import ShowOutput
+from backend.schemas.show import MazeShowOutput
 from backend.schemas.episode import EpisodeOutput
 from backend.services.maze_service import get_maze_service
 from backend.core.exceptions import APIError
@@ -11,7 +11,7 @@ async def retrieve_show_data(show_name, maze = Depends(get_maze_service)):
     try:
         output = maze.retrieve_show(show_name)
         show_id, name, poster = output
-        return ShowOutput(id=show_id, name=name, poster_url=poster)
+        return MazeShowOutput(id=show_id, name=name, poster_url=poster)
     except APIError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

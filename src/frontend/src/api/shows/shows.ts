@@ -32,7 +32,7 @@ export async function retrieveShow(showName: string): Promise<Show> {
                 const seasonCount: number = await responseSeasonCall.json();
                 const episodeHolder: [number, number, number][] = [];
                 for (let i = 1; i  <= seasonCount; i++) {
-                    const episodeResponse = await fetch(`/api/v1/showapi/episode/${id}/${i}`);
+                    const episodeResponse = await fetch(`/api/v1/showapi/number-episodes/${id}/${i}`);
                     const episodeValue: number = await episodeResponse.json();
                     episodeHolder.push([id, i, episodeValue]);
                 }
@@ -94,7 +94,7 @@ async function insertShow(showName: string, mazeId: number, url: string, seasons
             
             if(responseInsertSeason.status === 204) {
                 for (let j = 1; j <= episodeTuple![2]; j++){
-                    const responseEpisodeData = await fetch(`/api/v1/showapi/number-episodes/${mazeId}/${i}/${j}`);
+                    const responseEpisodeData = await fetch(`/api/v1/showapi/episodes/${mazeId}/${i}/${j}`);
                     if (responseEpisodeData.ok){
                         const { title, episode_number, air_date } = await responseEpisodeData.json();
                         const episodeData = {
