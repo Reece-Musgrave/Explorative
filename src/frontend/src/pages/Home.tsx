@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/popover"
 import { retrieveShow } from "../api/shows/shows.ts"
 import { retrieveEpisode } from "../api/shows/episodes.ts"
-import { type RetrieveShowOutput, type RetrieveEpisodeOutput } from "../api/shows/types.ts";
+import { type Show } from "@/types/show.ts"
+import { type Episode } from "@/types/episode.ts"
 import { useState, useEffect } from 'react';
 import { Alert } from "@/components/ui/alert.tsx"
 import { useAutocomplete } from "../components/use-autocomplete.tsx"
@@ -30,7 +31,7 @@ export function Home() {
     const navigate = useNavigate();
     const [error, setError] = useState<string | null>(null);
     const [showName, setShowName] = useState("");
-    const [showData, setShowData] = useState<RetrieveShowOutput | null>(null);
+    const [showData, setShowData] = useState<Show | null>(null);
     const [showSeasons, setShowSeasons] = useState(false);
     const [showEpisodes, setShowEpisodes] = useState(false);
     const [openSeason, setOpenSeason] = useState(false);
@@ -38,7 +39,7 @@ export function Home() {
     const [valueSeason, setValueSeason] = useState<number | null>(null);
     const [openEpisode, setOpenEpisode] = useState(false);
     const [valueEpisode, setValueEpisode] = useState("");
-    const [selectionString, setSelectionString] = useState<RetrieveEpisodeOutput | null>(null);
+    const [selectionString, setSelectionString] = useState<Episode | null>(null);
     const [errorPopup, setErrorPopup] = useState(false)
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [valueURL, setValueURL] = useState("");

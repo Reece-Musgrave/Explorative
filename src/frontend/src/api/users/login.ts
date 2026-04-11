@@ -1,6 +1,6 @@
-import {type LoginInput, type LoginOutput} from "./types"
+import {type LoginRequest, type LoginResponse} from "../../types/users" 
 
-export async function loginUser(login: LoginInput): Promise<LoginOutput> {
+export async function loginUser(login: LoginRequest): Promise<LoginResponse> {
     const headers: Headers = new Headers()
     headers.set('Content-Type', 'application/x-www-form-urlencoded')
     const body = new URLSearchParams({

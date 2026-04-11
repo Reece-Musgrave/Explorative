@@ -1,6 +1,6 @@
-import { type RetrieveRatingsOutput , type IMDBRating, type RTRating} from "./types"
+import { type Rating , type IMDBRating, type RTRating} from "../../types/rating"
 
-export async function retrieveAllRatings(show: string, season: number, episode: number): Promise<RetrieveRatingsOutput> {
+export async function retrieveAllRatings(show: string, season: number, episode: number): Promise<Rating> {
     const responseRatingsCall = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
     let id, episode_id, imdb, rt, serializd, ai_sent;
 

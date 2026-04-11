@@ -1,6 +1,6 @@
-import { type RetrieveShowOutput } from "./types";
+import { type Show } from "@/types/show";
 
-export async function retrieveShow(showName: string): Promise<RetrieveShowOutput> {
+export async function retrieveShow(showName: string): Promise<Show> {
     const responseShowCall = await fetch(`/api/v1/database/retrieve-show/${encodeURIComponent(showName)}`);
     if (responseShowCall.ok) {
         const { id, name, maze_id, url }= await responseShowCall.json();

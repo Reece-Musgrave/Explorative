@@ -1,15 +1,14 @@
-
-export interface LoginInput {
+export interface LoginRequest {
     username: string;
     password: string;
 }
 
-export interface LoginOutput {
+export interface LoginResponse {
     access_token: string;
     token_type: string;
 }
 
-export interface RegisterInput {
+export interface RegisterRequest {
     username: string;
     email: string;
     full_name: string;

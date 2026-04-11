@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react"
 import { autocomplete } from "../api/shows/autocomplete"
-import type { AutoCompleteOutput } from "../api/shows/types"
+import { type AutoCompleteResponse } from "@/types/show"
 
-export function useAutocomplete(query: string, delay = 200): AutoCompleteOutput[] {
-    const [results, setResults] = useState<AutoCompleteOutput[]>([])
+export function useAutocomplete(query: string, delay = 200): AutoCompleteResponse[] {
+    const [results, setResults] = useState<AutoCompleteResponse[]>([])
 
     useEffect(() => {
         if (!query) {

@@ -1,6 +1,6 @@
-import { type RegisterInput } from "./types"
+import { type RegisterRequest } from "../../types/users"
 
-export async function register(input: RegisterInput): Promise<number> {
+export async function register(input: RegisterRequest): Promise<number> {
     const headers: Headers = new Headers()
     headers.set('Content-Type', 'application/json')
     const body = JSON.stringify({

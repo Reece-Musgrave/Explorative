@@ -1,4 +1,4 @@
-import { type PostOutput } from "./types"
+import { type Post } from "@/types/posts";
 
 
 export async function insertPost(
@@ -7,7 +7,7 @@ export async function insertPost(
     show_name: string, 
     season_number: number, 
     episode_number: number, 
-    post_type: string): Promise<PostOutput>{
+    post_type: string): Promise<Post>{
 
         const params = new URLSearchParams({
             message,
@@ -38,7 +38,7 @@ export async function retrievePosts(
     show_name: string, 
     season_number: number, 
     episode_number: number, 
-    post_range: number[]): Promise<PostOutput[]>{
+    post_range: number[]): Promise<Post[]>{
 
         const params = new URLSearchParams();
         post_range.forEach(n => params.append("post_range", n.toString()));

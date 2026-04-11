@@ -3,11 +3,14 @@ import { useState, useEffect } from "react"
 import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "../api/shows/ratings.ts";
 import { getOrGenerateSentiment } from "../api/shows/ai-sentiment.ts";
 import { useLocation, useNavigate} from "react-router-dom";
-import { type RetrieveEpisodeOutput, type IMDBRating, type RTRating, type RetrieveSentimentAnalysisOutput, type PostOutput } from "../api/shows/types.ts";
+import { type IMDBRating, type RTRating } from "@/types/rating.ts";
+import { type Sentiment } from "@/types/sentiment.ts";
+import { type Episode } from "@/types/episode.ts";
+import { type Post } from "@/types/posts.ts";
 import { insertPost, retrievePosts } from "@/api/shows/posts.ts";
 import { useAuth } from "../context/authContext";
 
-export function Episode() {
+export function EpisodePage() {
 
     const { username } = useAuth();
     const navigate = useNavigate();
@@ -16,13 +19,13 @@ export function Episode() {
     const [noMorePosts, setNoMorePosts] = useState(false)
     const [newMessage, setNewMessage] = useState("")
     const [isPosting, setIsPosting] = useState(false)
-    const [posts, setPosts] = useState<PostOutput[] | null>(null)
+    const [posts, setPosts] = useState<Post[] | null>(null)
 
     const [sentimentOpen, setSentimentOpen] = useState(false)
     const [communityOpen, setCommunityOpen] = useState(false)
     const [chatOpen, setChatOpen] = useState(false)
     const location = useLocation();
-    const episodeData: RetrieveEpisodeOutput = location.state;
+    const episodeData: Episode = location.state;
 
     const [imdbRating, setImdbRating] = useState<IMDBRating | null>(null)
     const [rtRating, setRtRating] = useState<RTRating | null>(null)
@@ -31,7 +34,7 @@ export function Episode() {
     const [rtLoading, setRtLoading] = useState(true)
     const [serializdLoading, setSerializdLoading] = useState(true)
 
-    const [sentimentData, setSentimentData] = useState<RetrieveSentimentAnalysisOutput | null>(null)
+    const [sentimentData, setSentimentData] = useState<Sentiment | null>(null)
     const [sentimentLoading, setSentimentLoading] = useState(true)
 
     const airDate = new Date(episodeData.episode_airdata);
@@ -404,4 +407,4 @@ function RatingSpinner() {
     )
 }
 
-export default Episode
+export default EpisodePage

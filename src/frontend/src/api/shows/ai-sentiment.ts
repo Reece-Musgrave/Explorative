@@ -1,6 +1,6 @@
-import { type RetrieveSentimentAnalysisOutput } from "./types"
+import { type Sentiment } from "@/types/sentiment";
 
-export async function retrieveAISentiment(show: string, season: number, episode: number): Promise<RetrieveSentimentAnalysisOutput | null> {
+export async function retrieveAISentiment(show: string, season: number, episode: number): Promise<Sentiment | null> {
     const response = await fetch(`/api/v1/ai/retrieve-sentiment-analysis-db/${show}/${season}/${episode}`);
     if (response.ok) {
         const data = await response.json();
@@ -14,7 +14,7 @@ export async function retrieveAISentiment(show: string, season: number, episode:
     throw new Error(`Failed to retrieve sentiment analysis: ${response.status}`);
 }
 
-async function insertAISentiment(show: string, season: number, episode: number, reviews: string): Promise<RetrieveSentimentAnalysisOutput> {
+async function insertAISentiment(show: string, season: number, episode: number, reviews: string): Promise<Sentiment> {
     const generateResponse = await fetch("/api/v1/ai/retrieve-sentiment-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -26,7 +26,7 @@ async function insertAISentiment(show: string, season: number, episode: number, 
     if (!generateResponse.ok) {
         throw new Error(`Failed to generate sentiment analysis: ${generateResponse.status}`);
     }
-    const analysis: RetrieveSentimentAnalysisOutput = await generateResponse.json();
+    const analysis: Sentiment = await generateResponse.json();
     const insertResponse = await fetch("/api/v1/ai/insert-sentiment-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -44,7 +44,7 @@ async function insertAISentiment(show: string, season: number, episode: number, 
     return analysis;
 }
 
-export async function getOrGenerateSentiment(show: string, season: number, episode: number): Promise<RetrieveSentimentAnalysisOutput> {
+export async function getOrGenerateSentiment(show: string, season: number, episode: number): Promise<Sentiment> {
     const cached = await retrieveAISentiment(show, season, episode);
     if (cached) return cached;
 
