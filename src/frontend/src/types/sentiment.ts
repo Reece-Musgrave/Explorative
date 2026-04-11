@@ -3,4 +3,4 @@ export interface Sentiment{
     neutral: number;
     negative: number;
     summary: string;
-}
+};

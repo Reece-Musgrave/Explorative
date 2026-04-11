@@ -1,4 +1,5 @@
-import {type LoginRequest, type LoginResponse} from "../../types/users" 
+import {type LoginRequest, type LoginResponse} from "@/types/users" 
+
 
 export async function loginUser(login: LoginRequest): Promise<LoginResponse> {
     const headers: Headers = new Headers()
@@ -12,14 +13,14 @@ export async function loginUser(login: LoginRequest): Promise<LoginResponse> {
         headers: headers,
         body: body,
         credentials: 'include',
-    })
+    });
     const response = await fetch(request);
     if (response.ok){
         const { access_token, token_type }= await response.json();
         return {
-            access_token,
-            token_type
-        }
+            accessToken: access_token,
+            tokenType: token_type
+        };
     }
     else{
         throw new Error("Unable to retrieve user, are you sure the details were correct?");

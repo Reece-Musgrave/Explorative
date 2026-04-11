@@ -1,5 +1,6 @@
-import { SignupForm } from "../components/signup-form"
-import logo from "../assets/logo.png";
+import logo from "@/assets/logo.png";
+import { SignupForm } from "@/components/signup-form";
+
 
 export default function SignupPage() {
   return (
@@ -15,4 +16,4 @@ export default function SignupPage() {
       </div>
     </div>
   )
-}
+};

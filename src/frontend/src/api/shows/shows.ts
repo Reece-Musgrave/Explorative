@@ -1,5 +1,6 @@
 import { type Show } from "@/types/show";
 
+
 export async function retrieveShow(showName: string): Promise<Show> {
     const responseShowCall = await fetch(`/api/v1/database/retrieve-show/${encodeURIComponent(showName)}`);
     if (responseShowCall.ok) {
@@ -12,7 +13,7 @@ export async function retrieveShow(showName: string): Promise<Show> {
             );  
             return {
                 name,
-                maze_id,
+                mazeId: maze_id,
                 url,
                 seasons: episodes.length,
                 episodes: episodes
@@ -38,7 +39,7 @@ export async function retrieveShow(showName: string): Promise<Show> {
                 insertShow(name, id, poster_url ,seasonCount, episodeHolder);
                 return {
                     name,
-                    maze_id: id,
+                    mazeId: id,
                     url: poster_url,
                     seasons: seasonCount,
                     episodes: episodeHolder
@@ -54,10 +55,10 @@ export async function retrieveShow(showName: string): Promise<Show> {
     }
 }
 
-async function insertShow(showName: string, maze_id: number, url: string, seasons: number, episodes: [number, number, number][]): Promise<void> {
+async function insertShow(showName: string, mazeId: number, url: string, seasons: number, episodes: [number, number, number][]): Promise<void> {
     const showData = {
         name: showName,
-        maze_id: maze_id,
+        maze_id: mazeId,
         url: url
     };
       
@@ -85,7 +86,7 @@ async function insertShow(showName: string, maze_id: number, url: string, season
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(seasonData)
-            })
+            });
             const responseSeasonFetch = await fetch(`/api/v1/database/retrieve-season/${id}`);
             const seasonsArray: { id: number; season_number: number; number_episodes: number }[] = await responseSeasonFetch.json();
             const seasonRecord = seasonsArray.find(s => s.season_number === i);
@@ -93,7 +94,7 @@ async function insertShow(showName: string, maze_id: number, url: string, season
             
             if(responseInsertSeason.status === 204) {
                 for (let j = 1; j <= episodeTuple![2]; j++){
-                    const responseEpisodeData = await fetch(`/api/v1/showapi/retrieve-episodes/${maze_id}/${i}/${j}`);
+                    const responseEpisodeData = await fetch(`/api/v1/showapi/retrieve-episodes/${mazeId}/${i}/${j}`);
                     if (responseEpisodeData.ok){
                         const { title, episode_number, air_date } = await responseEpisodeData.json();
                         const episodeData = {
@@ -101,14 +102,14 @@ async function insertShow(showName: string, maze_id: number, url: string, season
                             episode_number,
                             title,
                             air_date
-                        }
+                        };
                         const responseInsertEpisode = await fetch(`/api/v1/database/insert-episode`, {
                             method: "PUT",
                             headers: {
                                 "Content-Type": "application/json"
                             },
                             body: JSON.stringify(episodeData)
-                        })
+                        });
                     }
                     else{
                         throw new Error("Unable to find episode data");

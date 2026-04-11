@@ -1,30 +1,20 @@
-import Navbar from "../components/layout/navbar.tsx"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { AlertTitle } from "@/components/ui/alert"
-import { Check, ChevronsUpDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { retrieveShow } from "../api/shows/shows.ts"
-import { retrieveEpisode } from "../api/shows/episodes.ts"
-import { type Show } from "@/types/show.ts"
-import { type Episode } from "@/types/episode.ts"
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useState, useEffect } from 'react';
-import { Alert } from "@/components/ui/alert.tsx"
-import { useAutocomplete } from "../components/use-autocomplete.tsx"
 import { useNavigate } from "react-router-dom";
+
+import { retrieveEpisode } from "@/api/shows/episodes.ts";
+import { retrieveShow } from "@/api/shows/shows.ts";
+import Navbar from "@/components/layout/navbar.tsx";
+import { AlertTitle, Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useAutocomplete } from "@/components/use-autocomplete.tsx";
+import { cn } from "@/lib/utils";
+import { type Episode } from "@/types/episode.ts";
+import { type Show } from "@/types/show.ts";
+
 
 export function Home() {
 
@@ -40,8 +30,8 @@ export function Home() {
     const [openEpisode, setOpenEpisode] = useState(false);
     const [valueEpisode, setValueEpisode] = useState("");
     const [selectionString, setSelectionString] = useState<Episode | null>(null);
-    const [errorPopup, setErrorPopup] = useState(false)
-    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [errorPopup, setErrorPopup] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [valueURL, setValueURL] = useState("");
 
     const handleSearchClick = async () => {
@@ -49,7 +39,7 @@ export function Home() {
       try {
         const data = await retrieveShow(showName);
         setShowData(data);
-        setValueURL(data.url)
+        setValueURL(data.url);
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Something went wrong");
@@ -63,13 +53,13 @@ export function Home() {
 
     const handleSelection = async (episodeNumber: string) => {
       const data = await retrieveEpisode(showName, Number(valueSeason), Number(episodeNumber), valueURL);
-      setSelectionString(data)
+      setSelectionString(data);
     }
 
     const suggestions = useAutocomplete(showName)
       useEffect(() => {
-        setShowSuggestions(suggestions.length > 0)
-      }, [suggestions])
+        setShowSuggestions(suggestions.length > 0);
+      }, [suggestions]);
 
     const episodeOptions =
       showData && valueSeason
@@ -289,4 +279,4 @@ export function Home() {
     );
   }
 
-export default Home
+export default Home;

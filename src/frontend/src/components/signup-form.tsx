@@ -33,10 +33,10 @@ export function SignupForm({
           e.preventDefault();
           try {
             if (password == passwordConf){
-              const username = full_name;
-              const data = await register({ username, email, full_name, password });
+              const username = fullName;
+              const data = await register({ username, email, fullName: fullName, password });
               const signin = await loginUser({ username, password });
-                    login(signin.access_token); 
+                    login(signin.accessToken); 
                     navigate("/"); 
             }
           } catch (err) {
@@ -47,7 +47,7 @@ export function SignupForm({
   const [password, setPassword] = useState("");
   const [passwordConf, setPasswordConf] = useState("");
   const [email, setEmail] = useState("");
-  const [full_name, setFullName] = useState("");
+  const [fullName, setFullName] = useState("");
   
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -68,7 +68,7 @@ export function SignupForm({
                   type="text" 
                   placeholder="John Doe" 
                   required 
-                  value = {full_name}
+                  value = {fullName}
                   onChange={(e) => 
                     setFullName(e.target.value)}/>
               </Field>

@@ -32,7 +32,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     e.preventDefault();
     try {
       const data = await loginUser({ username, password });
-      login(data.access_token); 
+      login(data.accessToken); 
       navigate("/"); 
     } catch (err) {
       console.error(err);

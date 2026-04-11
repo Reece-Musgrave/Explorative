@@ -2,18 +2,18 @@
 export interface IMDBRating {
     aggregateRating: number;
     voteCount: number;
-}
+};
 
 export interface RTRating {
     score: string;
-    review_count: number;
-}
+    reviewCount: number;
+};
 
 export interface Rating {
     id: number;
-    episode_id: number;
+    episodeId: number;
     imdb: IMDBRating | null;
     rt: RTRating | null;
     serializd: string | null;
-    ai_sent: string | null;
-}
+    aiSent: string | null;
+};

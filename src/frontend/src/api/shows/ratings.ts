@@ -1,4 +1,5 @@
-import { type Rating , type IMDBRating, type RTRating} from "../../types/rating"
+import { type Rating , type IMDBRating, type RTRating} from "@/types/rating"
+
 
 export async function retrieveAllRatings(show: string, season: number, episode: number): Promise<Rating> {
     const responseRatingsCall = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
@@ -6,15 +7,15 @@ export async function retrieveAllRatings(show: string, season: number, episode: 
 
     if (responseRatingsCall.ok) {
         ({ id, episode_id, imdb, rt, serializd, ai_sent } = await responseRatingsCall.json());
-        if (imdb) imdb = JSON.parse(imdb)
-        if (rt) rt = JSON.parse(rt)
+        if (imdb) imdb = JSON.parse(imdb);
+        if (rt) rt = JSON.parse(rt);
     }
 
-    if(!imdb) imdb = await insertRating("imdb", show, season, episode)
-    if(!rt) rt = await insertRating("rt", show, season, episode)
-    if(!serializd) serializd = await insertRating("serializd", show, season, episode)
+    if(!imdb) imdb = await insertRating("imdb", show, season, episode);
+    if(!rt) rt = await insertRating("rt", show, season, episode);
+    if(!serializd) serializd = await insertRating("serializd", show, season, episode);
 
-    return { id, episode_id, imdb, rt, serializd, ai_sent }
+    return { id, episodeId: episode_id, imdb, rt, serializd, aiSent: ai_sent };
 }
 
 export async function retrieveRTRating(show: string, season: number, episode: number): Promise<RTRating> {
@@ -23,11 +24,11 @@ export async function retrieveRTRating(show: string, season: number, episode: nu
     
     if (response.ok){
         ({ id, episode_id, imdb, rt, serializd, ai_sent } = await response.json());
-        if (rt) rt = JSON.parse(rt)
+        if (rt) rt = JSON.parse(rt);
     }
     
-    if(!rt) rt = await insertRating("rt", show, season, episode)
-    return (rt)
+    if(!rt) rt = await insertRating("rt", show, season, episode);
+    return (rt);
 }
 
 export async function retrieveSerializdRating(show: string, season: number, episode: number): Promise<string> {
@@ -38,8 +39,8 @@ export async function retrieveSerializdRating(show: string, season: number, epis
         ({ id, episode_id, imdb, rt, serializd, ai_sent } = await response.json());
     }
     
-    if(!serializd) serializd = await insertRating("serializd", show, season, episode)
-    return (serializd)
+    if(!serializd) serializd = await insertRating("serializd", show, season, episode);
+    return (serializd);
 }
 
 export async function retrieveIMDBRating(show: string, season: number, episode: number): Promise<IMDBRating> {
@@ -48,11 +49,11 @@ export async function retrieveIMDBRating(show: string, season: number, episode: 
     
     if (response.ok){
         ({ id, episode_id, imdb, rt, serializd, ai_sent } = await response.json());
-        if (imdb) imdb = JSON.parse(imdb)
+        if (imdb) imdb = JSON.parse(imdb);
     }
     
-    if(!imdb) imdb = await insertRating("imdb", show, season, episode)
-    return (imdb)
+    if(!imdb) imdb = await insertRating("imdb", show, season, episode);
+    return (imdb);
 }
 
 async function insertRating(method: string, show: string, season: number, episode: number): Promise<string>{
@@ -64,7 +65,7 @@ async function insertRating(method: string, show: string, season: number, episod
             season,
             episode,
             rating
-        }
+        };
 
         const responseInsertRating = await fetch(`/api/v1/ratings/insert-${method}-rating`, {
             method: "PUT",
@@ -72,10 +73,10 @@ async function insertRating(method: string, show: string, season: number, episod
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(ratingsData)
-        })
+        });
 
         if (responseInsertRating.ok){
-            return rating
+            return rating;
         } else{
             throw new Error(`DB Error: Unable to insert ratings for ${method} for given episode`);
         }

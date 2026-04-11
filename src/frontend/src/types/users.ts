@@ -1,16 +1,16 @@
 export interface LoginRequest {
     username: string;
     password: string;
-}
+};
 
 export interface LoginResponse {
-    access_token: string;
-    token_type: string;
-}
+    accessToken: string;
+    tokenType: string;
+};
 
 export interface RegisterRequest {
     username: string;
     email: string;
-    full_name: string;
+    fullName: string;
     password: string;
-}
+};

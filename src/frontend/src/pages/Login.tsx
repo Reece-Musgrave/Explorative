@@ -1,5 +1,6 @@
-import { LoginForm } from "../components/login-form"
-import logo from "../assets/logo.png";
+import logo from "@/assets/logo.png";
+import { LoginForm } from "@/components/login-form";
+
 
 export default function LoginPage() {
   return (
@@ -15,4 +16,4 @@ export default function LoginPage() {
       </div>
     </div>
   )
-}
+};

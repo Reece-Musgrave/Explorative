@@ -1,9 +1,10 @@
 import { Routes, Route } from 'react-router-dom';
-import Home from "./pages/Home.tsx"
-import LoginPage from "./pages/Login.tsx"
-import SignupPage from './pages/Signup.tsx';
-import EpisodePage from './pages/Episode.tsx';
+
 import { ThemeProvider } from "@/components/theme-provider"
+import EpisodePage from '@/pages/Episode.tsx';
+import Home from "@/pages/Home.tsx";
+import LoginPage from "@/pages/Login.tsx";
+import SignupPage from '@/pages/Signup.tsx';
 
 
 export function App() {
@@ -17,6 +18,6 @@ return (
         </Routes>
     </ThemeProvider>
     );
-}
+};
 
 export default App;

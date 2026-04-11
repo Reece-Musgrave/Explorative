@@ -1,43 +1,46 @@
-import Navbar from "../components/layout/navbar.tsx"
-import { useState, useEffect } from "react"
-import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "../api/shows/ratings.ts";
-import { getOrGenerateSentiment } from "../api/shows/ai-sentiment.ts";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate} from "react-router-dom";
-import { type IMDBRating, type RTRating } from "@/types/rating.ts";
-import { type Sentiment } from "@/types/sentiment.ts";
+
+
+import { getOrGenerateSentiment } from "@/api/shows/aiSentiment.ts";
+import { insertPost, retrievePosts } from "@/api/shows/posts.ts";
+import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "@/api/shows/ratings.ts";
+import Navbar from "@/components/layout/navbar.tsx";
+import { useAuth } from "@/context/authContext";
 import { type Episode } from "@/types/episode.ts";
 import { type Post } from "@/types/posts.ts";
-import { insertPost, retrievePosts } from "@/api/shows/posts.ts";
-import { useAuth } from "../context/authContext";
+import { type IMDBRating, type RTRating } from "@/types/rating.ts";
+import { type Sentiment } from "@/types/sentiment.ts";
+
 
 export function EpisodePage() {
 
     const { username } = useAuth();
     const navigate = useNavigate();
    
-    const [numberOfPosts, setNumberOfPosts] = useState(0)
-    const [noMorePosts, setNoMorePosts] = useState(false)
-    const [newMessage, setNewMessage] = useState("")
-    const [isPosting, setIsPosting] = useState(false)
-    const [posts, setPosts] = useState<Post[] | null>(null)
+    const [numberOfPosts, setNumberOfPosts] = useState(0);
+    const [noMorePosts, setNoMorePosts] = useState(false);
+    const [newMessage, setNewMessage] = useState("");
+    const [isPosting, setIsPosting] = useState(false);
+    const [posts, setPosts] = useState<Post[] | null>(null);
 
-    const [sentimentOpen, setSentimentOpen] = useState(false)
-    const [communityOpen, setCommunityOpen] = useState(false)
-    const [chatOpen, setChatOpen] = useState(false)
+    const [sentimentOpen, setSentimentOpen] = useState(false);
+    const [communityOpen, setCommunityOpen] = useState(false);
+    const [chatOpen, setChatOpen] = useState(false);
     const location = useLocation();
     const episodeData: Episode = location.state;
 
-    const [imdbRating, setImdbRating] = useState<IMDBRating | null>(null)
-    const [rtRating, setRtRating] = useState<RTRating | null>(null)
-    const [serializdRating, setSerializdRating] = useState<string | null>(null)
-    const [imdbLoading, setImdbLoading] = useState(true)
-    const [rtLoading, setRtLoading] = useState(true)
-    const [serializdLoading, setSerializdLoading] = useState(true)
+    const [imdbRating, setImdbRating] = useState<IMDBRating | null>(null);
+    const [rtRating, setRtRating] = useState<RTRating | null>(null);
+    const [serializdRating, setSerializdRating] = useState<string | null>(null);
+    const [imdbLoading, setImdbLoading] = useState(true);
+    const [rtLoading, setRtLoading] = useState(true);
+    const [serializdLoading, setSerializdLoading] = useState(true);
 
-    const [sentimentData, setSentimentData] = useState<Sentiment | null>(null)
-    const [sentimentLoading, setSentimentLoading] = useState(true)
+    const [sentimentData, setSentimentData] = useState<Sentiment | null>(null);
+    const [sentimentLoading, setSentimentLoading] = useState(true);
 
-    const airDate = new Date(episodeData.episode_airdata);
+    const airDate = new Date(episodeData.episodeAirdate);
     const today = new Date();
     const diffDays = Math.floor((today.getTime() - airDate.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -58,37 +61,37 @@ export function EpisodePage() {
 
     useEffect(() => {
         if (diffDays <= 3) {
-            setChatOpen(true)
+            setChatOpen(true);
         }
-    }, [diffDays])
+    }, [diffDays]);
 
     useEffect(() => {
-        retrieveIMDBRating(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+        retrieveIMDBRating(episodeData.showName, episodeData.seasonNumber, episodeData.episodeNumber)
             .then(data => setImdbRating(data))
             .finally(() => setImdbLoading(false))
-    }, [])
+    }, []);
     
     useEffect(() => {
-        retrieveRTRating(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+        retrieveRTRating(episodeData.showName, episodeData.seasonNumber, episodeData.episodeNumber)
             .then(data => setRtRating(data))
             .finally(() => setRtLoading(false))
-    }, [])
+    }, []);
     
     useEffect(() => {
-        retrieveSerializdRating(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+        retrieveSerializdRating(episodeData.showName, episodeData.seasonNumber, episodeData.episodeNumber)
             .then(data => setSerializdRating(data))
             .finally(() => setSerializdLoading(false))
-    }, [])
+    }, []);
 
     useEffect(() => {
-        getOrGenerateSentiment(episodeData.show_name, episodeData.season_number, episodeData.episode_number)
+        getOrGenerateSentiment(episodeData.showName, episodeData.seasonNumber, episodeData.episodeNumber)
             .then(data => {
-                setSentimentData(data)
+                setSentimentData(data);
             })
             .finally(() => {
-                setSentimentLoading(false)
+                setSentimentLoading(false);
             })
-    }, [])
+    }, []);
 
     const handleCommunityClick = async () => {
         const opening = !communityOpen;
@@ -96,9 +99,9 @@ export function EpisodePage() {
         if (opening && posts === null) {
             try {
                 const data = await retrievePosts(
-                    episodeData.show_name,
-                    episodeData.season_number,
-                    episodeData.episode_number,
+                    episodeData.showName,
+                    episodeData.seasonNumber,
+                    episodeData.episodeNumber,
                     [0, 3]
                 );
                 setPosts([...data]);
@@ -114,9 +117,9 @@ export function EpisodePage() {
     const handleGetMore = async () => {
         try {
             const data = await retrievePosts(
-                episodeData.show_name,
-                episodeData.season_number,
-                episodeData.episode_number,
+                episodeData.showName,
+                episodeData.seasonNumber,
+                episodeData.episodeNumber,
                 [numberOfPosts, numberOfPosts + 3]
             );
             if (data.length === 0) {
@@ -138,9 +141,9 @@ export function EpisodePage() {
             const post = await insertPost(
                 newMessage.trim(),
                 username,
-                episodeData.show_name,
-                episodeData.season_number,
-                episodeData.episode_number,
+                episodeData.showName,
+                episodeData.seasonNumber,
+                episodeData.episodeNumber,
                 "text"
             );
             setPosts(prev => [post, ...(prev ?? [])]);
@@ -161,16 +164,16 @@ export function EpisodePage() {
                 {/* Left Column */}
                 <div className="flex flex-col gap-4 p-6 overflow-y-auto">
                     <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-                        <img className="absolute inset-0 w-full h-full object-cover" src={episodeData.show_image_url}/>
+                        <img className="absolute inset-0 w-full h-full object-cover" src={episodeData.showImageURL}/>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         <div className="absolute bottom-0 left-0 p-4">
-                            <p className="text-white font-mono text-sm font-bold">{episodeData.show_name}</p>
-                            <p className="text-zinc-300 text-xs">S{String(episodeData.season_number).padStart(2, '0')} E{String(episodeData.episode_number).padStart(2, '0')} - {episodeData.episode_title}</p>
+                            <p className="text-white font-mono text-sm font-bold">{episodeData.showName}</p>
+                            <p className="text-zinc-300 text-xs">S{String(episodeData.seasonNumber).padStart(2, '0')} E{String(episodeData.episodeNumber).padStart(2, '0')} - {episodeData.episodeTitle}</p>
                         </div>
                     </div>
                     <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4">
                         <p className="text-gray-400 text-xs uppercase font-mono tracking-widest">Air Date</p>
-                        <p className="text-gray-900 text-sm mt-1">{episodeData.episode_airdata}</p>
+                        <p className="text-gray-900 text-sm mt-1">{episodeData.episodeAirdate}</p>
                         <span className="text-xs bg-gray-100 border border-gray-200 rounded-full px-3 py-0.5 mt-2 inline-block text-gray-500">{daysAgoLabel}</span>
                     </div>
                     <button className="w-full py-2.5 rounded-lg border border-dashed border-gray-300 text-gray-400 font-mono text-xs tracking-wider hover:border-blue-400 hover:text-blue-400 transition-colors"
@@ -202,7 +205,7 @@ export function EpisodePage() {
                                     <div className="h-1 bg-gray-200 rounded-full">
                                         <div className="h-1 bg-blue-500 rounded-full" style={{ width: rtRating?.score ? `${parseInt(rtRating.score)}%` : '0%' }} />
                                     </div>
-                                    <p className="text-gray-400 text-xs">{rtRating?.review_count ? `from ${rtRating.review_count.toLocaleString()} reviews` : "—"}</p>
+                                    <p className="text-gray-400 text-xs">{rtRating?.reviewCount ? `from ${rtRating.reviewCount.toLocaleString()} reviews` : "—"}</p>
                                 </>
                             )}
                         </div>
@@ -407,4 +410,4 @@ function RatingSpinner() {
     )
 }
 
-export default EpisodePage
+export default EpisodePage;
