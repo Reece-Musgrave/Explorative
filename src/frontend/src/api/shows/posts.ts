@@ -18,7 +18,7 @@ export async function insertPost(
             post_type: postType
         });
 
-        const response = await fetch(`/api/v1/posts/insert-post?${params}`, {
+        const response = await fetch(`/api/v1/posts/post?${params}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -43,7 +43,7 @@ export async function retrievePosts(
         const params = new URLSearchParams();
         postRange.forEach(n => params.append("post_range", n.toString()));
 
-        const response = await fetch(`/api/v1/posts/retrieve-post/${showName}/${seasonNumber}/${episodeNumber}?${params}`, {
+        const response = await fetch(`/api/v1/posts/post/${showName}/${seasonNumber}/${episodeNumber}?${params}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"

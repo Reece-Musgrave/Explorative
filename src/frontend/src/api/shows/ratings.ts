@@ -2,7 +2,7 @@ import { type Rating , type IMDBRating, type RTRating} from "@/types/rating"
 
 
 export async function retrieveAllRatings(show: string, season: number, episode: number): Promise<Rating> {
-    const responseRatingsCall = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
+    const responseRatingsCall = await fetch(`/api/v1/ratings/rating/${show}/${season}/${episode}`);
     let id, episode_id, imdb, rt, serializd, ai_sent;
 
     if (responseRatingsCall.ok) {
@@ -19,7 +19,7 @@ export async function retrieveAllRatings(show: string, season: number, episode: 
 }
 
 export async function retrieveRTRating(show: string, season: number, episode: number): Promise<RTRating> {
-    const response = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
+    const response = await fetch(`/api/v1/ratings/rating/${show}/${season}/${episode}`);
     let id, episode_id, imdb, rt, serializd, ai_sent;
     
     if (response.ok){
@@ -32,7 +32,7 @@ export async function retrieveRTRating(show: string, season: number, episode: nu
 }
 
 export async function retrieveSerializdRating(show: string, season: number, episode: number): Promise<string> {
-    const response = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
+    const response = await fetch(`/api/v1/ratings/rating/${show}/${season}/${episode}`);
     let id, episode_id, imdb, rt, serializd, ai_sent;
     
     if (response.ok){
@@ -44,7 +44,7 @@ export async function retrieveSerializdRating(show: string, season: number, epis
 }
 
 export async function retrieveIMDBRating(show: string, season: number, episode: number): Promise<IMDBRating> {
-    const response = await fetch(`/api/v1/ratings/retrieve-rating/${show}/${season}/${episode}`);
+    const response = await fetch(`/api/v1/ratings/rating/${show}/${season}/${episode}`);
     let id, episode_id, imdb, rt, serializd, ai_sent;
     
     if (response.ok){
@@ -57,7 +57,7 @@ export async function retrieveIMDBRating(show: string, season: number, episode: 
 }
 
 async function insertRating(method: string, show: string, season: number, episode: number): Promise<string>{
-    const responseRetrieveRating = await fetch(`/api/v1/ratings/retrieve-${method}/${show}/${season}/${episode}`)
+    const responseRetrieveRating = await fetch(`/api/v1/ratings/${method}/${show}/${season}/${episode}`)
     if (responseRetrieveRating.ok) {
         const rating = await responseRetrieveRating.json();
         const ratingsData = {
@@ -67,7 +67,7 @@ async function insertRating(method: string, show: string, season: number, episod
             rating
         };
 
-        const responseInsertRating = await fetch(`/api/v1/ratings/insert-${method}-rating`, {
+        const responseInsertRating = await fetch(`/api/v1/ratings/${method}-rating`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"

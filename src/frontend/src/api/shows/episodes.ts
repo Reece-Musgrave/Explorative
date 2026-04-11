@@ -2,7 +2,7 @@ import { type Episode } from "@/types/episode";
 
 
 export async function retrieveEpisode(showName: string, seasonNumber: number, episodeNumber: number, showImageURL: string): Promise<Episode>{
-    const retrieveEpisodeResponse = await fetch(`/api/v1/database/retrieve-episode/${showName}/${seasonNumber}`);
+    const retrieveEpisodeResponse = await fetch(`/api/v1/database/episode/${showName}/${seasonNumber}`);
     if (retrieveEpisodeResponse.ok){
         const episodes = await retrieveEpisodeResponse.json();
         try{

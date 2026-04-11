@@ -2,7 +2,7 @@ import { type Sentiment } from "@/types/sentiment";
 
 
 export async function retrieveAISentiment(show: string, season: number, episode: number): Promise<Sentiment | null> {
-    const response = await fetch(`/api/v1/ai/retrieve-sentiment-analysis-db/${show}/${season}/${episode}`);
+    const response = await fetch(`/api/v1/ai/sentiment-analysis/${show}/${season}/${episode}`);
     if (response.ok) {
         const data = await response.json();
         return typeof data === "string" ? JSON.parse(data) : data;
@@ -16,7 +16,7 @@ export async function retrieveAISentiment(show: string, season: number, episode:
 }
 
 async function insertAISentiment(show: string, season: number, episode: number, reviews: string): Promise<Sentiment> {
-    const generateResponse = await fetch("/api/v1/ai/retrieve-sentiment-analysis", {
+    const generateResponse = await fetch("/api/v1/ai/sentiment-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -28,7 +28,7 @@ async function insertAISentiment(show: string, season: number, episode: number, 
         throw new Error(`Failed to generate sentiment analysis: ${generateResponse.status}`);
     }
     const analysis: Sentiment = await generateResponse.json();
-    const insertResponse = await fetch("/api/v1/ai/insert-sentiment-analysis", {
+    const insertResponse = await fetch("/api/v1/ai/sentiment-analysis/db", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -49,7 +49,7 @@ export async function getOrGenerateSentiment(show: string, season: number, episo
     const cached = await retrieveAISentiment(show, season, episode);
     if (cached) return cached;
 
-    const reviewsResponse = await fetch(`/api/v1/ai/retrieve-reviews/${show}/${season}/${episode}`);
+    const reviewsResponse = await fetch(`/api/v1/ai/reviews/${show}/${season}/${episode}`);
     if (!reviewsResponse.ok) {
         throw new Error(`Failed to fetch reviews: ${reviewsResponse.status}`);
     }

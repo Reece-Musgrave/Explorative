@@ -11,7 +11,7 @@ from backend.schemas.ratings import RatingOutput, RTRatingCreate, IMDBRatingCrea
 
 router = APIRouter()
 
-@router.get("/api/v1/ratings/retrieve-rating/{show}/{season}/{episode}")
+@router.get("/api/v1/ratings/rating/{show}/{season}/{episode}")
 async def retrieve_rating(show, season, episode, db: Session = Depends(get_db)):
     rating = get_episode_rating_from_db(db, show, season, episode)
     if not rating:
@@ -26,7 +26,7 @@ async def retrieve_rating(show, season, episode, db: Session = Depends(get_db)):
         ai_sent=rating.ai_sent
     )
 
-@router.get("/api/v1/ratings/retrieve-imdb/{show}/{season}/{episode}")
+@router.get("/api/v1/ratings/imdb/{show}/{season}/{episode}")
 async def retrieve_imdb(show: str, season: int, episode: int):
     try:
         output = get_episode_rating_from_imdb(show, season, episode)
@@ -34,14 +34,14 @@ async def retrieve_imdb(show: str, season: int, episode: int):
     except APIError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.get("/api/v1/ratings/retrieve-rt/{show}/{season}/{episode}")
+@router.get("/api/v1/ratings/rt/{show}/{season}/{episode}")
 async def retrieve_rt(show: str, season, episode):
     output = get_episode_rating_from_rt(show, season, episode)
     if output is None:
         raise HTTPException(status_code=404, detail="RT rating not found")
     return output
 
-@router.get("/api/v1/ratings/retrieve-serializd/{show}/{season}/{episode}")
+@router.get("/api/v1/ratings/serializd/{show}/{season}/{episode}")
 async def retrieve_serializd(show: str, season: int, episode: int):
     try:
         output = await get_episode_rating_from_serializd(show, season, episode)
@@ -49,7 +49,7 @@ async def retrieve_serializd(show: str, season: int, episode: int):
     except APIError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.put("/api/v1/ratings/insert-imdb-rating", status_code=204)
+@router.put("/api/v1/ratings/imdb-rating", status_code=204)
 async def insert_imdb_rating(data: IMDBRatingCreate, db: Session = Depends(get_db)):
     try:
         insert_episode_rating_from_imdb_to_db(db, data.show, data.season, data.episode, data.rating.model_dump_json())
@@ -57,7 +57,7 @@ async def insert_imdb_rating(data: IMDBRatingCreate, db: Session = Depends(get_d
         db.rollback()  
         raise HTTPException(status_code=409)
 
-@router.put("/api/v1/ratings/insert-rt-rating", status_code=204)
+@router.put("/api/v1/ratings/rt-rating", status_code=204)
 async def insert_rt_rating(data: RTRatingCreate, db: Session = Depends(get_db)):
     try:
         insert_episode_rating_from_rt_to_db(db, data.show, data.season, data.episode, data.rating.model_dump_json())
@@ -65,7 +65,7 @@ async def insert_rt_rating(data: RTRatingCreate, db: Session = Depends(get_db)):
         db.rollback()  
         raise HTTPException(status_code=409)
 
-@router.put("/api/v1/ratings/insert-serializd-rating", status_code=204)
+@router.put("/api/v1/ratings/serializd-rating", status_code=204)
 async def insert_serializd_rating(data: SerializdRatingCreate, db: Session = Depends(get_db)):
     try:
         insert_episode_rating_from_serializd_to_db(db, data.show, data.season, data.episode, data.rating)
