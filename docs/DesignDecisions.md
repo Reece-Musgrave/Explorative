@@ -31,6 +31,12 @@ Reviews used in the AI sentiment analysis functionality are also retrieved using
 ## Rating retrieval and display
 If a ratings record is stored in the database, this is returned to the frontend. If there is no available record, the logical flow is set up to retrieve ratings via the web crawler functionality. As each web page is uniquely set up, sometimes this can take a period of time, and sometimes this can not return any data. Because of this, each UI element is set up as atomic, with a spinner showing in-progress data retrieval. As each rating returns (or doesn't), the UI displays, with each returning any errors in isolation. 
 
+## Freshness of Show Data
+In order to ensure freshness of Show metadata, refresh functionality has been implemented. This is applicable to Shows, Seasons and Episodes and involves the "last_refreshed" value within the Show database. When a user conducts an action which utilises show data, this value is checked, and if it is older than 5 days (Arbitrary selection), the seasons and episodes data will try to populate new available information. If there is no new data, or if the data is yonnger than 5 days, then the normal db return values are provided.
+
+## Post Functionality
+Currently implemented is the capacity for a user to create/submit posts linked with a specific episode. This allows community members to interact directly and enagage with others in asynchronous time. Currently only posts made on Reyapp are provisioned, but the feature will be expanded to include media from third-party sites, correctly imbedded with filters allowing quick selection.
+
 ## Database Schemas (Diagram)
 ### shows
 | Column | Type | Constraints |
@@ -87,9 +93,19 @@ If a ratings record is stored in the database, this is returned to the frontend.
 | disabled | Boolean | NOT NULL, default: false |
  
 ---
+
+### posts 
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | Integer | Primary Key |
+| episode_id | Integer | FK → episodes.id  |
+| message | String | |
+| username | String | |
+| post_type | String | |
  
 ## Relationships
  
 - **Shows** → **Seasons**: One-to-many (a show has many seasons)
 - **Seasons** → **Episodes**: One-to-many (a season has many episodes)
 - **Episodes** → **Ratings**: One-to-one (an episode has one ratings record)
+- **Episodes** → **Posts**: One-to-many (an episode has many posts)

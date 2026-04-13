@@ -6,24 +6,24 @@ This project is built with a three-tier architecture:
 - FastAPI / Python backend 
 - Postgres database
 
-Each tier is built in to Docker containers, and deployed to an AWS Ubuntu EC2 instance.
+Each tier is built in to Docker containers, and deployed to an AWS Ubuntu EC2 instance (T3.Small).
 
-## Features Implemented So Far:
+## Functionality Implemented So Far:
+- AI Sentiment Analysis and Summarisation using scraped third-party reviews and Claude Haiku
+- Webscrapers for retrieving third-party data where applicable (i.e. Ratings, Reviews)
 - User Authentication using JWT, Refresh Tokens, and Password Hashing
-- Postgres Database for housing User Data and TV Show metadata
-- Backend database service, I/O database operations 
+- Collation and display of third-party episode ratings (IMdb, Rotten Tomatoes, Serializd)
+- Ability for users to create and read posts made by others in relation to any episode.
+- Postgres Database for housing User Data, TV Show metadata, Ratings, Posts etc.
 - Backend MazeTV service for integrating with a Third Party API to source TV Metadata
-- FASTAPI endpoints to cover user authentication & backend services 
+- FASTAPI endpoints to cover user authentication, show/post/rating operations
 - React/Typescript/Tailwind frontend
 - Environment based config + containerised deployments
 - Nginx Reverse Proxy
 - SQLAlchemy ORM
 - Alembic migrations
-- Unit test coverage for FAST API Endpoints and Underlying services (No longer working post Postgres migration)
 
 ## Planned Features
-- Media collation and display from other sites (Webscraper)
-- Official and Unofficial episode / show reviews, with AI sentiment analysis 
 - Real-time chat feature ("Watch Parties")
 - Analytics dashboard 
 - Rate limiting 
@@ -45,7 +45,3 @@ Activate Virtual Env: 'source venv/bin/activate'
 Build and launch latest containers locally
 'docker compose build --no-cache'
 'docker compose up'
-
-###
-Run Test Suite
-Backend Test Suite: pytest 
