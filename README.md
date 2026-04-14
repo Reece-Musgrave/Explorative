@@ -14,6 +14,7 @@ Each tier is built in to Docker containers, and deployed to an AWS Ubuntu EC2 in
 - User Authentication using JWT, Refresh Tokens, and Password Hashing
 - Collation and display of third-party episode ratings (IMdb, Rotten Tomatoes, Serializd)
 - Ability for users to create and read posts made by others in relation to any episode.
+- Show refresh functionality, meaning latest seasons and episodes are picked up automatically.
 - Postgres Database for housing User Data, TV Show metadata, Ratings, Posts etc.
 - Backend MazeTV service for integrating with a Third Party API to source TV Metadata
 - FASTAPI endpoints to cover user authentication, show/post/rating operations

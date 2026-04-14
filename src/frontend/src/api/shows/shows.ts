@@ -1,10 +1,21 @@
 import { type Show } from "@/types/show";
+import { refreshShowDB } from "@/api/shows/showRefresh";
 
 
 export async function retrieveShow(showName: string): Promise<Show> {
     const responseShowCall = await fetch(`/api/v1/database/show/${encodeURIComponent(showName)}`);
     if (responseShowCall.ok) {
-        const { id, name, maze_id, url }= await responseShowCall.json();
+        const { id, name, maze_id, url, last_refreshed }= await responseShowCall.json();
+      
+        if (last_refreshed) {
+            const formattedDate = last_refreshed.replace(" ", "T");
+            const lastRefreshed = new Date(formattedDate);
+            const diffMs = new Date().getTime() - lastRefreshed.getTime();
+            if (diffMs > 5 * 24 * 60 * 60 * 1000) {
+                refreshShowDB(id, maze_id).catch(err => console.error("Background refresh failed:", err));
+            }
+        }
+
         const responseSeasonCall = await fetch (`/api/v1/database/season/${id}`);
         if (responseSeasonCall.ok) {
             const parsedSeasons: { id: number; season_number: number; number_episodes: number }[] = await responseSeasonCall.json();

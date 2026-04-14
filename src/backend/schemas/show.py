@@ -13,6 +13,7 @@ class ShowSummary(ShowBase):
 class ShowOutput(ShowBase):
     id: int
     url: str
+    last_refreshed: str
 
 class MazeShowOutput(BaseModel):
     id: int

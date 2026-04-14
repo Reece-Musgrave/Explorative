@@ -19,7 +19,8 @@ async def retrieve_show(show_name, db: Session = Depends(get_db)):
         id=show.id,
         name=show.name,
         maze_id=show.tvmaze_id,
-        url=show.poster_url
+        url=show.poster_url,
+        last_refreshed=show.last_refreshed
     )
 
 @router.get("/api/v1/database/n-shows/{show_string}")
