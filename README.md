@@ -55,7 +55,8 @@ Each service runs in an isolated Docker container and communicates over an inter
 ## Project Structure
 Below is a high-level breakdown of the codebase.
 
-🧩 backend/
+```text
+backend/
 ├── api/        → FastAPI route controllers
 ├── services/   → Business logic layer
 ├── models/     → Database ORM models
@@ -65,13 +66,14 @@ Below is a high-level breakdown of the codebase.
 ├── core/       → App config & shared utilities
 └── alembic/    → Database migrations
 
-🎨 frontend/
+frontend/
 ├── src/pages/      → Route-level views
 ├── src/components/ → Reusable UI components
 ├── src/api/        → Backend API client layer
 ├── src/context/    → Global state management
 ├── src/lib/        → Utilities/helpers
 └── src/types/      → TypeScript types
+```
 
 ## Deployment
 
