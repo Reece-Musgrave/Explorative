@@ -1,28 +1,44 @@
-This project is currently WIP. The main motivation behind the project is to create a one stop site for users to access and engage with cross-site, spoiler free content for whatever TV-show and episode they are currently watching.
+🎬 REYAPP 
+One-stop spoiler-free TV engagement platform
+Full-stack distributed web application with AI-driven sentiment analysis, built for aggregating and enhancing cross-platform TV show discussions. 
 
-## Architecture 
-This project is built with a three-tier architecture:
-- React / Typescript frontend 
-- FastAPI / Python backend 
-- Postgres database
+🚀 Overview
+This project is a WIP full-stack platform designed to provide users with a unified, spoiler-free experience for engaging with TV shows and episodes.
+It aggregates third-party ratings, reviews, and metadata, while enabling users to create episode-based discussions and interact with AI-generated sentiment summaries.
+The system is built using a production-style 3-tier architecture and deployed on AWS using Docker containerisation.
 
-Each tier is built in to Docker containers, and deployed to an AWS Ubuntu EC2 instance (T3.Small).
+## 🏗️ Architecture
 
-## Functionality Implemented So Far:
-- AI Sentiment Analysis and Summarisation using scraped third-party reviews and Claude Haiku
-- Webscrapers for retrieving third-party data where applicable (i.e. Ratings, Reviews)
-- User Authentication using JWT, Refresh Tokens, and Password Hashing
-- Collation and display of third-party episode ratings (IMdb, Rotten Tomatoes, Serializd)
-- Ability for users to create and read posts made by others in relation to any episode.
-- Show refresh functionality, meaning latest seasons and episodes are picked up automatically.
-- Postgres Database for housing User Data, TV Show metadata, Ratings, Posts etc.
-- Backend MazeTV service for integrating with a Third Party API to source TV Metadata
-- FASTAPI endpoints to cover user authentication, show/post/rating operations
-- React/Typescript/Tailwind frontend
-- Environment based config + containerised deployments
-- Nginx Reverse Proxy
-- SQLAlchemy ORM
-- Alembic migrations
+This project follows a 3-tier architecture deployed on AWS EC2 using Docker containers:
+
+- **Frontend:** React + TypeScript (served via Nginx)
+- **Backend:** FastAPI (Python REST API)
+- **Database:** PostgreSQL
+
+Each service runs in an isolated Docker container and communicates over an internal network.
+
+## Features Implemented
+
+### Core Platform
+- User authentication with JWT + refresh tokens
+- User-generated posts per episode
+- Show/season/episode metadata management
+
+### Data & Integrations
+- Web scraping of third-party ratings (IMDb, Rotten Tomatoes, Serializd)
+- External TV metadata integration service
+- Automated show/season refresh pipeline
+
+### AI & Analytics
+- AI-powered sentiment analysis and summarisation (Claude Haiku)
+- Aggregation of review sentiment across sources
+
+### Infrastructure
+- PostgreSQL database with SQLAlchemy ORM
+- Alembic database migrations
+- Fully containerised Docker deployment
+- Nginx reverse proxy
+- GitHub Actions CI/CD pipeline
 
 ## Planned Features
 - Real-time chat feature ("Watch Parties")
@@ -33,11 +49,38 @@ Each tier is built in to Docker containers, and deployed to an AWS Ubuntu EC2 in
 - Email functionality for locked-out users
 - MFA login
 
-## Live version of web app
+## 🌍 Live version of web app
 "https://sandbox.reecemus.com"
 
-## Prod Setup
-GitHub Actions is set up with two optional jobs that run of the main branch. The "Optional Build & Deploy" workflow, will build the latest version of the codebase in to container images and publish these to the GHCR. If the deploy job is run, these latest images will be built and deployed on the AWS infrastructure, being reflected the active site URL.
+## Project Structure
+Below is a high-level breakdown of the codebase.
+
+🧩 backend/
+├── api/        → FastAPI route controllers
+├── services/   → Business logic layer
+├── models/     → Database ORM models
+├── schemas/    → API request/response validation
+├── auth/       → JWT authentication & security logic
+├── db/         → Database session & configuration
+├── core/       → App config & shared utilities
+└── alembic/    → Database migrations
+
+🎨 frontend/
+├── src/pages/      → Route-level views
+├── src/components/ → Reusable UI components
+├── src/api/        → Backend API client layer
+├── src/context/    → Global state management
+├── src/lib/        → Utilities/helpers
+└── src/types/      → TypeScript types
+
+## Deployment
+
+- Hosted on AWS EC2 (Ubuntu, T3.small instance)
+- Fully containerised using Docker
+- Frontend served via Nginx reverse proxy
+- Backend exposed via FastAPI (Uvicorn)
+- Database runs in isolated PostgreSQL container
+- CI/CD pipeline builds and deploys images via GitHub Actions to GHCR
 
 ## Dev Setup
 Activate Virtual Env: 'source venv/bin/activate'

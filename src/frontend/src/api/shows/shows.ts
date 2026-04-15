@@ -1,133 +1,77 @@
 import { type Show } from "@/types/show";
 import { refreshShowDB } from "@/api/shows/showRefresh";
+import { apiClient } from "@/lib/apiClient";
+import { type DBSeasonResponse, type DBShowResponse, type MazeShowResponse, type MazeEpisodeResponse } from "./shows.types";
 
 
 export async function retrieveShow(showName: string): Promise<Show> {
-    const responseShowCall = await fetch(`/api/v1/database/show/${encodeURIComponent(showName)}`);
-    if (responseShowCall.ok) {
-        const { id, name, maze_id, url, last_refreshed }= await responseShowCall.json();
-      
+    try {
+        const { id, name, maze_id, url, last_refreshed } = await apiClient.get<DBShowResponse>(
+            `/database/show/${encodeURIComponent(showName)}`
+        );
+
         if (last_refreshed) {
-            const formattedDate = last_refreshed.replace(" ", "T");
-            const lastRefreshed = new Date(formattedDate);
+            const lastRefreshed = new Date(last_refreshed.replace(" ", "T"));
             const diffMs = new Date().getTime() - lastRefreshed.getTime();
             if (diffMs > 5 * 24 * 60 * 60 * 1000) {
                 refreshShowDB(id, maze_id).catch(err => console.error("Background refresh failed:", err));
             }
         }
 
-        const responseSeasonCall = await fetch (`/api/v1/database/season/${id}`);
-        if (responseSeasonCall.ok) {
-            const parsedSeasons: { id: number; season_number: number; number_episodes: number }[] = await responseSeasonCall.json();
-            const episodes: [number, number, number][] = parsedSeasons.map(
-                (s) => [s.id, s.season_number, s.number_episodes]
-            );  
-            return {
-                name,
-                mazeId: maze_id,
-                url,
-                seasons: episodes.length,
-                episodes: episodes
-            };
-        }
-        else {
-            throw new Error("Unable to retrieve season data from database");
-        }
-    }
-    else {
-        const responseMazeCall = await fetch(`/api/v1/showapi/show/${encodeURIComponent(showName)}`);
-        if (responseMazeCall.ok) {
-            const { id, name, poster_url } = await responseMazeCall.json();
-            const responseSeasonCall = await fetch(`/api/v1/showapi/seasons/${id}`);
-            if (responseSeasonCall.ok) {
-                const seasonCount: number = await responseSeasonCall.json();
-                const episodeHolder: [number, number, number][] = [];
-                for (let i = 1; i  <= seasonCount; i++) {
-                    const episodeResponse = await fetch(`/api/v1/showapi/number-episodes/${id}/${i}`);
-                    const episodeValue: number = await episodeResponse.json();
-                    episodeHolder.push([id, i, episodeValue]);
-                }
-                insertShow(name, id, poster_url ,seasonCount, episodeHolder);
-                return {
-                    name,
-                    mazeId: id,
-                    url: poster_url,
-                    seasons: seasonCount,
-                    episodes: episodeHolder
-                };
-            }
-            else{
-                throw new Error("Unable to retrieve season Data");
-            }
-        }
-        else{
-            throw new Error("Unable to find show");
-        }
+        const parsedSeasons = await apiClient.get<DBSeasonResponse[]>(`/database/season/${id}`);
+        const episodes: [number, number, number][] = parsedSeasons.map(
+            (s) => [s.id, s.season_number, s.number_episodes]
+        );
+
+        return { name, mazeId: maze_id, url, seasons: episodes.length, episodes };
+
+    } catch {
+        const { id, name, poster_url } = await apiClient.get<MazeShowResponse>(
+            `/showapi/show/${encodeURIComponent(showName)}`
+        );
+
+        const seasonCount = await apiClient.get<number>(`/showapi/seasons/${id}`);
+
+        const episodeHolder: [number, number, number][] = await Promise.all(
+            Array.from({ length: seasonCount }, async (_, i) => {
+                const episodeValue = await apiClient.get<number>(`/showapi/number-episodes/${id}/${i + 1}`);
+                return [id, i + 1, episodeValue] as [number, number, number];
+            })
+        );
+
+        insertShow(name, id, poster_url, seasonCount, episodeHolder);
+
+        return { name, mazeId: id, url: poster_url, seasons: seasonCount, episodes: episodeHolder };
     }
 }
 
 async function insertShow(showName: string, mazeId: number, url: string, seasons: number, episodes: [number, number, number][]): Promise<void> {
-    const showData = {
-        name: showName,
-        maze_id: mazeId,
-        url: url
-    };
-      
-    const responseInsertShow = await fetch(`/api/v1/database/show`, {
-        method: "PUT",
-        headers: {
-        "Content-Type": "application/json"
-        },
-        body: JSON.stringify(showData)
-    });
+    await apiClient.put('/database/show', { name: showName, maze_id: mazeId, url });
 
-    if (responseInsertShow.status === 204) {
-        const responseShowCall = await fetch(`/api/v1/database/show/${encodeURIComponent(showName)}`);
-        const { id }= await responseShowCall.json();
-        for (let i = 1; i  <= seasons; i++) {
-            const episodeTuple = episodes.find(ep => ep[1] === i);
-            const seasonData = {
+    const { id } = await apiClient.get<DBShowResponse>(`/database/show/${encodeURIComponent(showName)}`);
+
+    await Promise.all(
+        Array.from({ length: seasons }, async (_, i) => {
+            const seasonNumber = i + 1;
+            const episodeTuple = episodes.find(ep => ep[1] === seasonNumber)!;
+
+            await apiClient.put('/database/season', {
                 show_id: id,
-                season_number: i,
-                episode_number: episodeTuple![2]
-            };
-            const responseInsertSeason = await fetch(`/api/v1/database/season`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(seasonData)
+                season_number: seasonNumber,
+                episode_number: episodeTuple[2]
             });
-            const responseSeasonFetch = await fetch(`/api/v1/database/season/${id}`);
-            const seasonsArray: { id: number; season_number: number; number_episodes: number }[] = await responseSeasonFetch.json();
-            const seasonRecord = seasonsArray.find(s => s.season_number === i);
-            const season_id = seasonRecord!.id;
-            
-            if(responseInsertSeason.status === 204) {
-                for (let j = 1; j <= episodeTuple![2]; j++){
-                    const responseEpisodeData = await fetch(`/api/v1/showapi/episodes/${mazeId}/${i}/${j}`);
-                    if (responseEpisodeData.ok){
-                        const { title, episode_number, air_date } = await responseEpisodeData.json();
-                        const episodeData = {
-                            season_id,
-                            episode_number,
-                            title,
-                            air_date
-                        };
-                        const responseInsertEpisode = await fetch(`/api/v1/database/episode`, {
-                            method: "PUT",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify(episodeData)
-                        });
-                    }
-                    else{
-                        throw new Error("Unable to find episode data");
-                    }
-                }
-            }
-            
-        }
-    }
+
+            const seasonsArray = await apiClient.get<DBSeasonResponse[]>(`/database/season/${id}`);
+            const season_id = seasonsArray.find(s => s.season_number === seasonNumber)!.id;
+
+            await Promise.all(
+                Array.from({ length: episodeTuple[2] }, async (_, j) => {
+                    const { title, episode_number, air_date } = await apiClient.get<MazeEpisodeResponse>(
+                        `/showapi/episodes/${mazeId}/${seasonNumber}/${j + 1}`
+                    );
+                    await apiClient.put('/database/episode', { season_id, episode_number, title, air_date });
+                })
+            );
+        })
+    );
 }
