@@ -10,8 +10,8 @@ export interface RTRating {
 };
 
 export interface Rating {
-    id: number;
-    episodeId: number;
+    id?: number;
+    episodeId?: number;
     imdb: IMDBRating | null;
     rt: RTRating | null;
     serializd: string | null;

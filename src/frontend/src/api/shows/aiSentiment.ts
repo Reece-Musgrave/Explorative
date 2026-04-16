@@ -1,58 +1,26 @@
-import { type Sentiment } from "@/types/sentiment";
-
+import { apiClient, ApiError } from '@/lib/apiClient';
+import { type Sentiment } from '@/types/sentiment';
+import { type ReviewsResponse } from './aiSentiment.types';
 
 export async function retrieveAISentiment(show: string, season: number, episode: number): Promise<Sentiment | null> {
-    const response = await fetch(`/api/v1/ai/sentiment-analysis/${show}/${season}/${episode}`);
-    if (response.ok) {
-        const data = await response.json();
-        return typeof data === "string" ? JSON.parse(data) : data;
+    try {
+        const data = await apiClient.get<Sentiment | string>(`/ai/sentiment-analysis/${show}/${season}/${episode}`);
+        return typeof data === 'string' ? JSON.parse(data) : data;
+    } catch (err) {
+        if (err instanceof ApiError && err.status === 404) return null;
+        throw err;
     }
-
-    if (response.status === 404) {
-        return null; 
-    }
-    
-    throw new Error(`Failed to retrieve sentiment analysis: ${response.status}`);
 }
 
 async function insertAISentiment(show: string, season: number, episode: number, reviews: string): Promise<Sentiment> {
-    const generateResponse = await fetch("/api/v1/ai/sentiment-analysis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            reviews: reviews
-        }),
-    });
-
-    if (!generateResponse.ok) {
-        throw new Error(`Failed to generate sentiment analysis: ${generateResponse.status}`);
-    }
-    const analysis: Sentiment = await generateResponse.json();
-    const insertResponse = await fetch("/api/v1/ai/sentiment-analysis/db", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            analysis: JSON.stringify(analysis),
-            show,
-            season,
-            episode_number: episode,
-        }),
-    });
-    if (!insertResponse.ok) {
-        throw new Error(`Failed to insert sentiment analysis: ${insertResponse.status}`);
-    }
-
+    const analysis = await apiClient.post<Sentiment>('/ai/sentiment-analysis', { reviews });
+    await apiClient.post('/ai/sentiment-analysis/db', { analysis: JSON.stringify(analysis), show, season, episode_number: episode });
     return analysis;
 }
 
 export async function getOrGenerateSentiment(show: string, season: number, episode: number): Promise<Sentiment> {
     const cached = await retrieveAISentiment(show, season, episode);
     if (cached) return cached;
-
-    const reviewsResponse = await fetch(`/api/v1/ai/reviews/${show}/${season}/${episode}`);
-    if (!reviewsResponse.ok) {
-        throw new Error(`Failed to fetch reviews: ${reviewsResponse.status}`);
-    }
-    const { reviews } = await reviewsResponse.json();
-    return await insertAISentiment(show, season, episode, reviews);
+    const { reviews } = await apiClient.get<ReviewsResponse>(`/ai/reviews/${show}/${season}/${episode}`);
+    return insertAISentiment(show, season, episode, reviews);
 }
