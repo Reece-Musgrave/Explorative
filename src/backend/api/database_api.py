@@ -9,8 +9,8 @@ from backend.services.database_service import get_show, get_n_shows, get_episode
 
 router = APIRouter()
 
-@router.get("/api/v1/database/show/{show_name}")
-async def retrieve_show(show_name, db: Session = Depends(get_db)):
+@router.get("/api/v1/database/show/{show_name}", response_model=ShowOutput)
+async def retrieve_show(show_name: str, db: Session = Depends(get_db)):
     show = get_show(db, show_name)
     if not show:
         raise HTTPException(status_code=404)
@@ -23,8 +23,8 @@ async def retrieve_show(show_name, db: Session = Depends(get_db)):
         last_refreshed=show.last_refreshed
     )
 
-@router.get("/api/v1/database/n-shows/{show_string}")
-async def retrieve_n_shows(show_string, db: Session = Depends(get_db)):
+@router.get("/api/v1/database/n-shows/{show_string}", response_model=list[ShowSummary])
+async def retrieve_n_shows(show_string: str, db: Session = Depends(get_db)):
     output = get_n_shows(db, show_string, 5)
 
     return [
@@ -36,9 +36,7 @@ async def retrieve_n_shows(show_string, db: Session = Depends(get_db)):
         for r in output
     ]
 
-@router.get(
-        "/api/v1/database/episode-air_date",
-        response_model=str)
+@router.get("/api/v1/database/episode-air_date", response_model=str)
 async def retrieve_episode_air_date(data: EpisodeTimestampCreate = Depends(), db: Session = Depends(get_db)):
     output = get_episode_timestamp(db, data.show_name, data.season_number, data.episode_name)
     
@@ -70,8 +68,8 @@ async def insert_episode(data: EpisodeCreate, db: Session = Depends(get_db)):
     except IntegrityError:
         raise HTTPException(status_code=409)
 
-@router.get("/api/v1/database/season/{show_id}")
-async def retrieve_season(show_id, db: Session = Depends(get_db)):
+@router.get("/api/v1/database/season/{show_id}", response_model = list[SeasonOutput])
+async def retrieve_season(show_id: int, db: Session = Depends(get_db)):
     output = get_seasons(db, show_id)
     
     if output == None:
@@ -88,8 +86,8 @@ async def retrieve_season(show_id, db: Session = Depends(get_db)):
         )
     return outputArray
 
-@router.get("/api/v1/database/episode/{show_name}/{season_number}")
-async def retrieve_episodes(show_name, season_number, db: Session = Depends(get_db)):
+@router.get("/api/v1/database/episode/{show_name}/{season_number}", response_model=list[EpisodeOutput])
+async def retrieve_episodes(show_name: str, season_number: int, db: Session = Depends(get_db)):
     output = get_episodes_by_season(db, show_name, season_number)
     
     if output == None:

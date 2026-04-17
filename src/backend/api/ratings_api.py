@@ -7,12 +7,12 @@ from backend.services.ratings_service import get_episode_rating_from_db
 from backend.services.external_ratings.imdb_ratings_service import get_episode_rating_from_imdb, insert_episode_rating_from_imdb_to_db
 from backend.services.external_ratings.rottentomatoes_ratings_service import get_episode_rating_from_rt, insert_episode_rating_from_rt_to_db
 from backend.services.external_ratings.serializd_ratings_service import get_episode_rating_from_serializd, insert_episode_rating_from_serializd_to_db
-from backend.schemas.ratings import RatingOutput, RTRatingCreate, IMDBRatingCreate, SerializdRatingCreate
+from backend.schemas.ratings import RatingOutput, RTRatingCreate, IMDBRatingCreate, SerializdRatingCreate, IMDBRating, RTRating
 
 router = APIRouter()
 
-@router.get("/api/v1/ratings/rating/{show}/{season}/{episode}")
-async def retrieve_rating(show, season, episode, db: Session = Depends(get_db)):
+@router.get("/api/v1/ratings/rating/{show}/{season}/{episode}", response_model=RatingOutput)
+async def retrieve_rating(show:str, season:int, episode:int, db: Session = Depends(get_db)):
     rating = get_episode_rating_from_db(db, show, season, episode)
     if not rating:
         raise HTTPException(status_code=404)
@@ -26,7 +26,7 @@ async def retrieve_rating(show, season, episode, db: Session = Depends(get_db)):
         ai_sent=rating.ai_sent
     )
 
-@router.get("/api/v1/ratings/imdb/{show}/{season}/{episode}")
+@router.get("/api/v1/ratings/imdb/{show}/{season}/{episode}", response_model=IMDBRating)
 async def retrieve_imdb(show: str, season: int, episode: int):
     try:
         output = get_episode_rating_from_imdb(show, season, episode)
@@ -34,14 +34,14 @@ async def retrieve_imdb(show: str, season: int, episode: int):
     except APIError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.get("/api/v1/ratings/rt/{show}/{season}/{episode}")
-async def retrieve_rt(show: str, season, episode):
+@router.get("/api/v1/ratings/rt/{show}/{season}/{episode}", response_model=RTRating)
+async def retrieve_rt(show: str, season: int, episode: int):
     output = get_episode_rating_from_rt(show, season, episode)
     if output is None:
         raise HTTPException(status_code=404, detail="RT rating not found")
     return output
 
-@router.get("/api/v1/ratings/serializd/{show}/{season}/{episode}")
+@router.get("/api/v1/ratings/serializd/{show}/{season}/{episode}", response_model=str)
 async def retrieve_serializd(show: str, season: int, episode: int):
     try:
         output = await get_episode_rating_from_serializd(show, season, episode)

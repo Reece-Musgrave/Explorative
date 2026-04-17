@@ -1,7 +1,11 @@
 from pydantic import BaseModel
+from typing import List
 
 class SentimentCreate(BaseModel):
     reviews: str
+
+class ReviewsResponse(BaseModel):
+    reviews: List[str]
 
 class SentimentOutput(BaseModel):
     positive: int

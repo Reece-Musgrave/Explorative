@@ -12,12 +12,13 @@ from backend.core.config import settings
 from backend.db.session import get_db
 from backend.schemas.token import Token
 from backend.schemas.user import UserInput
+from backend.schemas.responses import AvailabilityResponse, MessageResponse
 from backend.services.user_database_service import get_email, get_username, create_user
 import jwt
 
 router = APIRouter()
 
-@router.post("/api/v1/users/login")
+@router.post("/api/v1/users/login", response_model=Token)
 async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> Token:
     user = authenticate_user(db, form_data.username, form_data.password)  
     if not user:
@@ -47,7 +48,7 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
     
     return Token(access_token=access_token, token_type="bearer")
 
-@router.post("/api/v1/users/refresh")
+@router.post("/api/v1/users/refresh", response_model = Token)
 async def refresh_token(request: Request, db: Session = Depends(get_db)) -> Token:
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
@@ -73,14 +74,14 @@ async def refresh_token(request: Request, db: Session = Depends(get_db)) -> Toke
 
     return Token(access_token=access_token, token_type="bearer")
 
-@router.get("/api/v1/users/check-email/{email}")
-async def check_email(email, db: Session = Depends(get_db)):
+@router.get("/api/v1/users/check-email/{email}", response_model=AvailabilityResponse)
+async def check_email(email: str, db: Session = Depends(get_db)):
     output = get_email(db, email)
     return {"available": not output}
 
 
-@router.get("/api/v1/users/check-username/{username}")
-async def check_username(username, db: Session = Depends(get_db)):
+@router.get("/api/v1/users/check-username/{username}", response_model=AvailabilityResponse)
+async def check_username(username: str, db: Session = Depends(get_db)):
     output = get_username(db, username)
     return {"available": not output}
 
@@ -96,7 +97,7 @@ async def register_user(data: UserInput, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=409)
 
-@router.post("/api/v1/users/logout")
+@router.post("/api/v1/users/logout", response_model= MessageResponse)
 async def logout_user():
     response = JSONResponse(content={"detail": "Logged out"})
     response.delete_cookie(

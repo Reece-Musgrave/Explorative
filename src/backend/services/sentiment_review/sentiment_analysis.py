@@ -6,6 +6,7 @@ from backend.models.seasons import Seasons
 from backend.models.episodes import Episodes
 from backend.models.ratings import Ratings
 from backend.core.exceptions import NotFoundError
+import json
 
 tools = [
     {
@@ -89,4 +90,9 @@ def get_ai_sentiment_analysis_from_db(db: Session, show: str, season: int, episo
     if not existing_rating or not existing_rating.ai_sent:
         return None
     
-    return existing_rating.ai_sent
+    ai_sent = existing_rating.ai_sent
+
+    if isinstance(ai_sent, str):
+        ai_sent = json.loads(ai_sent)
+
+    return ai_sent

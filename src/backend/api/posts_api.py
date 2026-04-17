@@ -8,7 +8,7 @@ from backend.schemas.posts import PostOutput
 router = APIRouter()
 
 
-@router.get("/api/v1/posts/post/{show_name}/{season_number}/{episode_number}")
+@router.get("/api/v1/posts/post/{show_name}/{season_number}/{episode_number}", response_model=list[PostOutput])
 async def retrieve_posts(show_name: str, season_number: int, episode_number: int, post_range: list[int] = Query(...), db: Session = Depends(get_db)):
     posts = get_posts(db, show_name, season_number, episode_number, post_range)
     if not posts:
@@ -25,7 +25,7 @@ async def retrieve_posts(show_name: str, season_number: int, episode_number: int
         for r in posts
     ]
 
-@router.post("/api/v1/posts/post")
+@router.post("/api/v1/posts/post", response_model=PostOutput)
 async def insert_post(message: str, username: str, show_name: str, season_number: int, episode_number: int, post_type: str, db: Session = Depends(get_db)):
     try:
         post = create_post(db, message, username, show_name, season_number, episode_number, post_type)
