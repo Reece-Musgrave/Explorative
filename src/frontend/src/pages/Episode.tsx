@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate} from "react-router-dom";
 
 
@@ -7,15 +7,19 @@ import { insertPost, retrievePosts } from "@/api/shows/posts.ts";
 import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "@/api/shows/ratings.ts";
 import Navbar from "@/components/layout/navbar.tsx";
 import { useAuth } from "@/context/authContext";
+import { useChat } from "@/hooks/useChat";
 import { type Episode } from "@/types/episode.ts";
 import { type Post } from "@/types/posts.ts";
 import { type IMDBRating, type RTRating } from "@/types/rating.ts";
 import { type Sentiment } from "@/types/sentiment.ts";
 
 
+
+
 export function EpisodePage() {
 
     const { username } = useAuth();
+    const { accessToken } = useAuth();
     const navigate = useNavigate();
    
     const [numberOfPosts, setNumberOfPosts] = useState(0);
@@ -154,6 +158,27 @@ export function EpisodePage() {
         } finally {
             setIsPosting(false);
         }
+    };
+
+    const { messages, viewerCount, sendMessage, error, connected } = useChat({
+        showName: episodeData.showName,
+        seasonNumber: episodeData.seasonNumber,
+        episodeNumber: episodeData.episodeNumber,
+        token: accessToken,
+        enabled: chatOpen,
+    });
+    const [chatInput, setChatInput] = useState("");
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    const handleSend = () => {
+        const text = chatInput.trim();
+        if (!text) return;
+        sendMessage(text);
+        setChatInput("");
     };
     
     return (
@@ -342,40 +367,75 @@ export function EpisodePage() {
                         )}
                     </div>
                 </div>
-                {/* Right Column */}
+                {/* Right Column  */}
                 <div className="flex flex-col h-[calc(100vh-40px)] sticky top-[40px] border-l border-gray-200">
-                    {chatOpen && (
+                    {chatOpen ? (
                         <>
-                            <div className="p-4 border-b border-gray-200 bg-white">
+                            {/* Header */}
+                            <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                                    <div className={`w-2 h-2 rounded-full ${connected ? "bg-green-400 animate-pulse" : "bg-gray-300"}`} />
                                     <p className="text-gray-900 font-mono text-sm">Live Chat</p>
-                                    <span className="ml-auto text-gray-400 text-xs font-mono">14 watching</span>
+                                    <span className="ml-auto text-gray-400 text-xs font-mono">
+                                        {viewerCount} watching
+                                    </span>
                                 </div>
-                                <p className="text-gray-400 text-xs mt-1">Episode aired 6 days ago</p>
+                                <p className="text-gray-400 text-xs mt-1">
+                                    {daysAgoLabel} · {connected ? "Connected" : "Reconnecting..."}
+                                </p>
                             </div>
+
+                            {/* Error banner */}
+                            {error && (
+                                <div className="mx-4 mt-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg flex-shrink-0">
+                                    <p className="text-red-500 text-xs font-mono">{error}</p>
+                                </div>
+                            )}
+
                             {/* Messages */}
                             <div className="flex flex-col gap-3 p-4 overflow-y-auto flex-1">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-gray-400 text-xs font-mono">user1</span>
-                                    <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2 text-xs text-gray-700 max-w-[85%]">
-                                        Example message
+                                {messages.map((msg, i) => (
+                                    <div key={msg.id ?? i} className="flex flex-col gap-1">
+                                        <span className="text-gray-400 text-xs font-mono">{msg.username}</span>
+                                        <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2 text-xs text-gray-700 max-w-[85%]">
+                                            {msg.message}
+                                        </div>
                                     </div>
-                                </div>
+                                ))}
+                                <div ref={messagesEndRef} />
                             </div>
-                            {/* Input */}
-                            <div className="p-4 border-t border-gray-200 bg-white flex gap-2">
-                                <input
-                                    className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-xs text-gray-700 outline-none placeholder:text-gray-400"
-                                    placeholder="Say something..."
-                                />
-                                <button className="bg-blue-500 hover:bg-blue-600 transition-colors text-white text-xs font-mono px-4 py-2 rounded-full">
-                                    Send
-                                </button>
+
+                            {/* Input — or login prompt */}
+                            <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
+                                {username ? (
+                                    <div className="flex gap-2">
+                                        <input
+                                            className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-xs text-gray-700 outline-none placeholder:text-gray-400"
+                                            placeholder="Say something..."
+                                            value={chatInput}
+                                            maxLength={500}
+                                            onChange={e => setChatInput(e.target.value)}
+                                            onKeyDown={e => e.key === "Enter" && handleSend()}
+                                        />
+                                        <button
+                                            className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 transition-colors text-white text-xs font-mono px-4 py-2 rounded-full"
+                                            onClick={handleSend}
+                                            disabled={!chatInput.trim() || !connected}
+                                        >
+                                            Send
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 text-xs text-center font-mono">
+                                        <a href="/login" className="text-blue-400 hover:text-blue-500 transition-colors">
+                                            Log in
+                                        </a>{" "}
+                                        to send messages
+                                    </p>
+                                )}
                             </div>
                         </>
-                    )}
-                    {!chatOpen && (
+                    ) : (
                         <div className="flex flex-col items-center justify-center h-full p-6 gap-4">
                             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                                 <span className="text-gray-400 text-lg">💬</span>
