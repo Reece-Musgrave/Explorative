@@ -23,6 +23,7 @@ Each service runs in an isolated Docker container and communicates over an inter
 - User authentication with JWT + refresh tokens
 - User-generated posts per episode
 - Show/season/episode metadata management
+- Real time chat functionality via Websockets
 
 ### Data & Integrations
 - Web scraping of third-party ratings (IMDb, Rotten Tomatoes, Serializd)
@@ -41,7 +42,6 @@ Each service runs in an isolated Docker container and communicates over an inter
 - GitHub Actions CI/CD pipeline
 
 ## Planned Features
-- Real-time chat feature ("Watch Parties")
 - Analytics dashboard 
 - Rate limiting 
 - Active buffer for chat messages 

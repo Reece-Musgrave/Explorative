@@ -1,6 +1,8 @@
 
 # Key Functionality 
-## Primary Application Flow
+
+## Websocket Live Chats
+On each episode page, if the episode was released in the last N days (set to 3 right now), the page will include a live chat built using the websocket protocol. Viewing messages is available to all, to post messages, the user must be logged in and authenticated. Connections are created when the page is open, terminated when the page is closed. Messages are persisted and retrieved when reopening the chat. And users are rate-limited to 5 messages within a 30 second period to prevent misuse.
 
 ## AI Sentiment Analysis of third-party episode reviews
 As part of the application, one feature is the AI Sentiment Review and Summary functionality. N reviews are collated, mixing Rotten Tomatoes and IMdb reviews, trimmed and concatenated in to a raw data string. This data is then fed, alongside a set prompt to the Anthropic Model Haiku, to retrieve in response a JSON object including sentiment analysis and a truncated summary.
