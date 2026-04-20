@@ -43,11 +43,13 @@ Each service runs in an isolated Docker container and communicates over an inter
 
 ## Planned Features
 - Analytics dashboard 
-- Rate limiting 
-- Active buffer for chat messages 
-- Expanded profile features
 - Email functionality for locked-out users
-- MFA login
+- Redis Cache and Background Tasks
+- Active buffer for chat messages 
+- Expanded profile features and feed page
+- Fuzzy Search
+- Testing Suite
+
 
 ## 🌍 Live version of web app
 "https://sandbox.reecemus.com"

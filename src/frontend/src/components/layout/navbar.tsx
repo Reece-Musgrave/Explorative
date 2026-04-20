@@ -46,7 +46,6 @@ export default function Navbar() {
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
           <a href="/" className="text-sm/6 font-semibold text-gray-900">Search</a>
           <a className="text-sm/6 font-semibold text-gray-300">Feed</a>
-          <a className="text-sm/6 font-semibold text-gray-300">Watch Party</a>
         </PopoverGroup>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {accessToken ? (

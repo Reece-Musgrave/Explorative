@@ -448,14 +448,6 @@ export function EpisodePage() {
                                         Live chat is only available for episodes released within the last 72 hours.
                                     </p>
                                 </div>
-                                <div className="border border-dashed border-gray-200 rounded-xl p-4 w-full">
-                                    <p className="text-gray-400 text-xs text-center font-mono">
-                                        Want to chat live with others?
-                                    </p>
-                                    <p className="text-blue-400 text-xs text-center font-mono mt-1 cursor-pointer hover:text-blue-500 transition-colors">
-                                        Explore our Watch Parties
-                                    </p>
-                                </div>
                             </div>
                         )}
                     </div>
