@@ -1,28 +1,15 @@
 import { useState } from 'react'
 import { Link } from "react-router-dom";
-import {
-  Dialog,
-  DialogPanel,
-  PopoverGroup,
-} from '@headlessui/react'
-import {
-  Bars3Icon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
+import { Dialog, DialogPanel, PopoverGroup } from '@headlessui/react'
+import { Bars3Icon, XMarkIcon,UserCircleIcon } from '@heroicons/react/24/outline'
 import { useAuth } from "../../context/authContext";
 import logo from "../../assets/logo.png";
+import ProfileModal from "@/components/layout/ProfileModal"; 
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { accessToken, logout} = useAuth()
-
-  const handleLogout = async () => {
-    await fetch(`/api/v1/users/logout`, {
-      method: "POST",
-      credentials: "include",  
-    });
-    logout();
-  }
+  const [profileOpen, setProfileOpen] = useState(false) 
+  const { accessToken, logout } = useAuth()
 
   return (
     <header className="bg-gray-50">
@@ -47,10 +34,15 @@ export default function Navbar() {
           <a href="/" className="text-sm/6 font-semibold text-gray-900">Search</a>
           <a className="text-sm/6 font-semibold text-gray-300">Feed</a>
         </PopoverGroup>
+
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {accessToken ? (
-            <button onClick={handleLogout} className="text-sm/6 font-semibold text-gray-900">
-              Logout
+            <button
+              onClick={() => setProfileOpen(true)}
+              className="text-gray-700 hover:text-gray-900 transition-colors"
+              aria-label="Open profile"
+            >
+              <UserCircleIcon className="size-7" />
             </button>
           ) : (
             <Link to="/login" className="text-sm/6 font-semibold text-gray-900">
@@ -59,6 +51,11 @@ export default function Navbar() {
           )}
         </div>
       </nav>
+
+      {profileOpen && (
+        <ProfileModal onClose={() => setProfileOpen(false)} />
+      )}
+
       <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
@@ -85,14 +82,15 @@ export default function Navbar() {
                 <a className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-300">
                   Feed
                 </a>
-                <a className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-300">
-                  Watch Party
-                </a>
               </div>
               <div className="py-6">
                 {accessToken ? (
-                  <button onClick={handleLogout} className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50">
-                    Logout
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); setProfileOpen(true); }}
+                    className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50"
+                  >
+                    <UserCircleIcon className="size-5" />
+                    Profile
                   </button>
                 ) : (
                   <Link to="/login" className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50">
