@@ -5,3 +5,5 @@ from .users import Users
 from .ratings import Ratings
 from .posts import Posts
 from .chat import ChatMessage
+from .user_follow_show import UserFollowShow
+from .user_follow_user import UserFollowUser

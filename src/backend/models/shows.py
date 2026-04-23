@@ -12,3 +12,4 @@ class Shows(Base):
     last_refreshed = Column(String)
 
     seasons = relationship("Seasons", back_populates="shows")
+    user_follow_show = relationship("UserFollowShow", back_populates="show")
