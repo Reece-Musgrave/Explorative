@@ -11,9 +11,9 @@ from backend.auth.service import get_user
 from backend.core.config import settings
 from backend.db.session import get_db
 from backend.schemas.token import Token
-from backend.schemas.user import UserInput
+from backend.schemas.user import UserInput, FullDBUser
 from backend.schemas.responses import AvailabilityResponse, MessageResponse
-from backend.services.user_database_service import get_email, get_username, create_user
+from backend.services.user_database_service import get_email, get_username, get_user, create_user
 import jwt
 
 router = APIRouter()
@@ -79,11 +79,15 @@ async def check_email(email: str, db: Session = Depends(get_db)):
     output = get_email(db, email)
     return {"available": not output}
 
-
 @router.get("/api/v1/users/check-username/{username}", response_model=AvailabilityResponse)
 async def check_username(username: str, db: Session = Depends(get_db)):
     output = get_username(db, username)
     return {"available": not output}
+
+@router.get("/api/v1/users/user/{username}", response_model=FullDBUser)
+async def retrieve_user(username: str, db: Session = Depends(get_db)):
+    output = get_user(db, username)
+    return output 
 
 @router.post("/api/v1/users/register", status_code=204)
 async def register_user(data: UserInput, db: Session = Depends(get_db)):

@@ -18,6 +18,14 @@ def get_username(db: Session, username: str):
     )
     return user is not None
 
+def get_user(db: Session, username: str):
+    user = (
+        db.query(Users)
+        .filter(Users.username == username)
+        .first()
+    )
+    return user
+
 def create_user(db: Session, username: str, email: str, full_name: str, password_hash: str):
     new_user = Users(
         username=username,
