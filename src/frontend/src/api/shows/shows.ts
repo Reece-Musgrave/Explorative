@@ -75,3 +75,7 @@ async function insertShow(showName: string, mazeId: number, url: string, seasons
         })
     );
 }
+
+export async function simpleFetchShow(showName: string): Promise<DBShowResponse > {
+    return apiClient.get<DBShowResponse>(`/database/show/${encodeURIComponent(showName)}`);
+}

@@ -14,3 +14,11 @@ export interface RegisterRequest {
     fullName: string;
     password: string;
 };
+
+export interface UserResponse {
+    id: number;
+    username: string;
+    email: string;
+    fullName: string;
+    disabled: boolean;
+};

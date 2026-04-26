@@ -37,4 +37,13 @@ async function post<T = void>(path: string, body?: unknown): Promise<T> {
     return response.json();
 }
 
-export const apiClient = { get, put, post };
+async function del<T = void>(path: string): Promise<T> {
+    const response = await fetch(`${BASE_URL}${path}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) throw new ApiError(response.status, `DELETE ${path} failed: ${response.status}`);
+    if (response.status === 204) return undefined as T;
+    return response.json();
+}
+
+export const apiClient = { get, put, post, del };
