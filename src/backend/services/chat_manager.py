@@ -45,6 +45,23 @@ class ConnectionManager:
             except ValueError:
                 pass
 
+    def get_active_rooms(self) -> list[dict]:
+        result = []
+        for key, connections in list(self._rooms.items()):
+            parts = key.split("::")
+            if len(parts) == 3:
+                show_name = parts[0]
+                season = int(parts[1][1:])
+                episode = int(parts[2][1:])
+                result.append({
+                    "show_name": show_name,
+                    "season": season,
+                    "episode": episode,
+                    "users": len(connections),
+                    "pulse": len(connections) > 0,
+                })
+        return sorted(result, key=lambda x: x["users"], reverse=True)
+
     def is_rate_limited(self, username: str) -> bool:
         now = datetime.now(tz=timezone.utc)
         cutoff = now - timedelta(seconds=RATE_LIMIT_WINDOW_SECONDS)

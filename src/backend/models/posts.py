@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 from backend.db.base import Base
 
@@ -10,6 +10,7 @@ class Posts(Base):
     message = Column(String)
     username = Column(String)
     post_type = Column(String)
-    
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    likes = Column(Integer, server_default="0", nullable=False)
 
     episode = relationship("Episodes", back_populates="posts")
