@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { MagnifyingGlassIcon, FireIcon, ChatBubbleLeftRightIcon, UserPlusIcon, CheckIcon } from "@heroicons/react/24/outline";
 import Navbar from "@/components/layout/navbar";
 import { useAuth } from "@/context/authContext";
 import { fetchFeedPosts, fetchTrendingShows, fetchLiveChats, searchUsers } from "@/api/feed/feed";
 import type { FeedPost, TrendingShow, LiveChat, UserSearchResult } from "@/api/feed/feed.types";
 import { insertFollowUserRelationship, deleteFollowUserRelationship, fetchUser } from "@/api/social/socialNetwork";
+import { retrieveEpisode } from "@/api/shows/episodes";
+import { simpleFetchShow } from "@/api/shows/shows";
 
 
 function relativeTime(isoString: string): string {
@@ -184,7 +187,7 @@ function UserSearchWidget({ currentUsername }: { currentUsername: string | null 
   );
 }
 
-function TrendingWidget({ items }: { items: TrendingShow[] }) {
+function TrendingWidget({ items, onItemClick }: { items: TrendingShow[]; onItemClick: (item: TrendingShow) => void }) {
   return (
     <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2">
@@ -196,7 +199,7 @@ function TrendingWidget({ items }: { items: TrendingShow[] }) {
       ) : (
         <div className="flex flex-col gap-3">
           {items.map((item, i) => (
-            <div key={`${item.show_name}-${item.detail}`} className="flex items-center gap-3 cursor-pointer group">
+            <div key={`${item.show_name}-${item.detail}`} className="flex items-center gap-3 cursor-pointer group" onClick={() => onItemClick(item)}>
               <span className="text-gray-200 text-xs font-mono w-4 flex-shrink-0">
                 {padNum(i + 1)}
               </span>
@@ -224,7 +227,7 @@ function TrendingWidget({ items }: { items: TrendingShow[] }) {
   );
 }
 
-function LiveChatsWidget({ chats }: { chats: LiveChat[] }) {
+function LiveChatsWidget({ chats, onItemClick }: { chats: LiveChat[]; onItemClick: (chat: LiveChat) => void }) {
   return (
     <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2">
@@ -239,6 +242,7 @@ function LiveChatsWidget({ chats }: { chats: LiveChat[] }) {
             <div
               key={`${chat.show_name}-${chat.episode}`}
               className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100 cursor-pointer hover:border-blue-200 hover:bg-blue-50/40 transition-colors group"
+              onClick={() => onItemClick(chat)}
             >
               <div
                 className={`w-2 h-2 rounded-full flex-shrink-0 ${
@@ -263,6 +267,30 @@ function LiveChatsWidget({ chats }: { chats: LiveChat[] }) {
 
 export default function FeedPage() {
   const { username } = useAuth();
+  const navigate = useNavigate();
+
+  const handleTrendingClick = async (item: TrendingShow) => {
+    try {
+      const episode = await retrieveEpisode(item.show_name, item.season, item.episode, item.thumbnail ?? "");
+      navigate("/episode", { state: episode });
+    } catch {
+      // silently ignore
+    }
+  };
+
+  const handleLiveChatClick = async (chat: LiveChat) => {
+    const match = chat.episode.match(/S(\d+)\s*E(\d+)/i);
+    if (!match) return;
+    const season = parseInt(match[1], 10);
+    const episodeNum = parseInt(match[2], 10);
+    try {
+      const show = await simpleFetchShow(chat.show_name);
+      const episode = await retrieveEpisode(chat.show_name, season, episodeNum, show.url);
+      navigate("/episode", { state: episode });
+    } catch {
+      // silently ignore
+    }
+  };
 
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [trending, setTrending] = useState<TrendingShow[]>([]);
@@ -357,8 +385,8 @@ export default function FeedPage() {
         {/* ── Sidebar ── */}
         <div className="flex flex-col gap-4 order-1 lg:order-2 mb-6 lg:mb-0">
           <UserSearchWidget currentUsername={username} />
-          <TrendingWidget items={trending} />
-          <LiveChatsWidget chats={liveChats} />
+          <TrendingWidget items={trending} onItemClick={handleTrendingClick} />
+          <LiveChatsWidget chats={liveChats} onItemClick={handleLiveChatClick} />
         </div>
 
       </div>
