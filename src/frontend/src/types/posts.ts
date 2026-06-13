@@ -1,10 +1,10 @@
-{/* Object to store frontend Post data */}
 export interface Post{
     id: number;
-    episodeId: number;
+    episode_id: number;
     message: string;
     username: string;
-    postType: string;
+    post_type: string;
     likes: number;
     user_has_liked: boolean;
+    media_url: string | null;
 };

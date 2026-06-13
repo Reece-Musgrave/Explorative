@@ -11,6 +11,7 @@ export interface FeedPost {
   likes: number;
   post_type: string;
   user_has_liked: boolean;
+  media_url: string | null;
 }
 
 export interface TrendingShow {

@@ -94,6 +94,14 @@ function PostCard({ post }: { post: FeedPost }) {
         )}
         <p className="text-gray-700 text-sm leading-relaxed flex-1">{post.message}</p>
       </div>
+      {post.media_url && (
+        <img
+          src={post.media_url}
+          alt="post media"
+          className="w-full rounded-lg border border-gray-100"
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
 
       <div className="flex items-center gap-4 pt-1 border-t border-gray-50">
         <button

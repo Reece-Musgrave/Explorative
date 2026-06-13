@@ -6,7 +6,7 @@ from backend.models.episodes import Episodes
 from backend.models.posts import Posts
 from backend.models.user_liked_post import UserLikedPost
 
-def create_post(db: Session, message: str, username: str, show_name: str, season_number: int, episode_number: int, post_type: str):
+def create_post(db: Session, message: str, username: str, show_name: str, season_number: int, episode_number: int, post_type: str, media_url: str | None = None):
     episode = (
         db.query(Episodes)
         .join(Episodes.seasons)
@@ -23,7 +23,8 @@ def create_post(db: Session, message: str, username: str, show_name: str, season
         episode_id = episode.id,
         message = message,
         username = username,
-        post_type = post_type
+        post_type = post_type,
+        media_url = media_url,
     )
     db.add(new_post)
     db.commit()
@@ -65,6 +66,7 @@ def get_posts(db: Session, show_name: str, season_number: int, episode_number: i
             "post_type": p.post_type,
             "likes": p.likes,
             "user_has_liked": p.id in liked_ids,
+            "media_url": p.media_url,
         }
         for p in posts_page
     ]

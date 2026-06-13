@@ -16,6 +16,7 @@ class FeedPostOutput(BaseModel):
     likes: int
     post_type: str
     user_has_liked: bool = False
+    media_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

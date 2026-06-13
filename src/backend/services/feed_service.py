@@ -57,6 +57,7 @@ def get_feed_posts(db: Session, username: str, limit: int = 20, offset: int = 0)
             "likes": post.likes,
             "post_type": post.post_type,
             "user_has_liked": post.id in liked_ids,
+            "media_url": post.media_url,
         }
         for post, episode, season, show in rows
     ]

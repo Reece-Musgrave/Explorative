@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate} from "react-router-dom";
 
 
+import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { getOrGenerateSentiment } from "@/api/shows/aiSentiment.ts";
 import { insertPost, retrievePosts, likePost } from "@/api/shows/posts.ts";
 import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "@/api/shows/ratings.ts";
@@ -42,6 +43,13 @@ function EpisodePostCard({ post, currentUsername }: { post: Post; currentUsernam
                 <span className="text-blue-500 text-xs font-mono font-semibold">{post.username}</span>
             </div>
             <p className="text-gray-700 text-xs leading-relaxed">{post.message}</p>
+            {post.media_url && (
+                <img
+                    src={post.media_url}
+                    alt="post media"
+                    className="w-full rounded-lg border border-gray-100"
+                />
+            )}
             <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
                 <button
                     onClick={handleLike}
@@ -72,6 +80,10 @@ export function EpisodePage() {
     const [newMessage, setNewMessage] = useState("");
     const [isPosting, setIsPosting] = useState(false);
     const [posts, setPosts] = useState<Post[] | null>(null);
+    const [mediaFile, setMediaFile] = useState<File | null>(null);
+    const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+    const [mediaError, setMediaError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [sentimentOpen, setSentimentOpen] = useState(false);
     const [communityOpen, setCommunityOpen] = useState(false);
@@ -185,6 +197,30 @@ export function EpisodePage() {
         }
     };
     
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            setMediaError("Only JPEG and PNG images are allowed");
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            setMediaError("Image must be under 5 MB");
+            return;
+        }
+        setMediaError(null);
+        setMediaFile(file);
+        setMediaPreview(URL.createObjectURL(file));
+    };
+
+    const clearMedia = () => {
+        if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+        setMediaFile(null);
+        setMediaPreview(null);
+        setMediaError(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
     const handleSubmitPost = async () => {
         if (!newMessage.trim() || !username || isPosting) return;
         setIsPosting(true);
@@ -195,10 +231,12 @@ export function EpisodePage() {
                 episodeData.showName,
                 episodeData.seasonNumber,
                 episodeData.episodeNumber,
-                "text"
+                "text",
+                mediaFile ?? undefined,
             );
             setPosts(prev => [post, ...(prev ?? [])]);
             setNewMessage("");
+            clearMedia();
             setNumberOfPosts(n => n + 1);
         } catch (err) {
             console.error(err);
@@ -355,10 +393,43 @@ export function EpisodePage() {
                                             value={newMessage}
                                             onChange={e => setNewMessage(e.target.value)}
                                         />
+                                        {/* Media attachment row */}
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/jpeg,image/png"
+                                                className="hidden"
+                                                onChange={handleFileSelect}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="flex items-center gap-1 text-gray-400 hover:text-blue-400 transition-colors text-xs font-mono cursor-pointer"
+                                            >
+                                                <PhotoIcon className="w-4 h-4" />
+                                                <span>Photo</span>
+                                            </button>
+                                            {mediaPreview && (
+                                                <div className="relative flex-shrink-0">
+                                                    <img src={mediaPreview} className="h-8 w-8 rounded object-cover border border-gray-200" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={clearMedia}
+                                                        className="absolute -top-1 -right-1 bg-gray-700 rounded-full p-0.5 cursor-pointer"
+                                                    >
+                                                        <XMarkIcon className="w-2.5 h-2.5 text-white" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {mediaError && (
+                                                <span className="text-red-400 text-xs font-mono">{mediaError}</span>
+                                            )}
+                                        </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-gray-400 text-xs font-mono">{newMessage.length}/300</span>
                                             <button
-                                                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 transition-colors text-white text-xs font-mono px-4 py-1.5 rounded-full"
+                                                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 transition-colors text-white text-xs font-mono px-4 py-1.5 rounded-full cursor-pointer"
                                                 onClick={handleSubmitPost}
                                                 disabled={!newMessage.trim() || isPosting}
                                             >

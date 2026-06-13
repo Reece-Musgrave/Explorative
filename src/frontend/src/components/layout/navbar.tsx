@@ -41,14 +41,14 @@ export default function Navbar() {
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
           <a href="/" className="text-sm/6 font-semibold text-gray-900">Search</a>
-          <button onClick={handleFeedClick} className="text-sm/6 font-semibold text-gray-900">Feed</button>
+          <button onClick={handleFeedClick} className="text-sm/6 font-semibold text-gray-900 cursor-pointer">Feed</button>
         </PopoverGroup>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {accessToken ? (
             <button
               onClick={() => setProfileOpen(true)}
-              className="text-gray-700 hover:text-gray-900 transition-colors"
+              className="text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
               aria-label="Open profile"
             >
               <UserCircleIcon className="size-7" />
@@ -88,7 +88,7 @@ export default function Navbar() {
                 <a href="/" className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50">
                   Search
                 </a>
-                <button onClick={() => { setMobileMenuOpen(false); handleFeedClick(); }} className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50 w-full text-left">
+                <button onClick={() => { setMobileMenuOpen(false); handleFeedClick(); }} className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50 w-full text-left cursor-pointer">
                   Feed
                 </button>
               </div>
@@ -96,7 +96,7 @@ export default function Navbar() {
                 {accessToken ? (
                   <button
                     onClick={() => { setMobileMenuOpen(false); setProfileOpen(true); }}
-                    className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50"
+                    className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50 cursor-pointer"
                   >
                     <UserCircleIcon className="size-5" />
                     Profile
