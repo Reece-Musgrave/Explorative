@@ -1,15 +1,24 @@
 import { useState } from 'react'
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogPanel, PopoverGroup } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon,UserCircleIcon } from '@heroicons/react/24/outline'
 import { useAuth } from "../../context/authContext";
 import logo from "../../assets/logo.png";
-import ProfileModal from "@/components/layout/ProfileModal"; 
+import ProfileModal from "@/components/layout/ProfileModal";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false) 
+  const [profileOpen, setProfileOpen] = useState(false)
   const { accessToken, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleFeedClick = () => {
+    if (accessToken) {
+      navigate("/feed");
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
     <header className="bg-gray-50">
@@ -32,7 +41,7 @@ export default function Navbar() {
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
           <a href="/" className="text-sm/6 font-semibold text-gray-900">Search</a>
-          <a href="/feed" className="text-sm/6 font-semibold text-gray-300">Feed</a>
+          <button onClick={handleFeedClick} className="text-sm/6 font-semibold text-gray-900">Feed</button>
         </PopoverGroup>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
@@ -79,9 +88,9 @@ export default function Navbar() {
                 <a href="/" className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50">
                   Search
                 </a>
-                <a className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-300">
+                <button onClick={() => { setMobileMenuOpen(false); handleFeedClick(); }} className="-mx-3 block rounded-lg px-3 py-2 text-sm/6 font-semibold text-gray-900 hover:bg-gray-50 w-full text-left">
                   Feed
-                </a>
+                </button>
               </div>
               <div className="py-6">
                 {accessToken ? (
