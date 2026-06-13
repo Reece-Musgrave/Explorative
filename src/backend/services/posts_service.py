@@ -1,4 +1,4 @@
-from backend.core.exceptions import NotFoundError
+from backend.core.exceptions import NotFoundError, PermissionDenied
 from sqlalchemy.orm import Session
 from backend.models.shows import Shows
 from backend.models.seasons import Seasons
@@ -70,6 +70,29 @@ def get_posts(db: Session, show_name: str, season_number: int, episode_number: i
         }
         for p in posts_page
     ]
+
+
+def update_post(db: Session, post_id: int, username: str, new_message: str) -> Posts:
+    post = db.query(Posts).filter(Posts.id == post_id).first()
+    if not post:
+        raise NotFoundError(f"Post {post_id} not found")
+    if post.username != username:
+        raise PermissionDenied(f"User {username} is not the author of post {post_id}")
+    post.message = new_message
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+def delete_post(db: Session, post_id: int, username: str) -> None:
+    post = db.query(Posts).filter(Posts.id == post_id).first()
+    if not post:
+        raise NotFoundError(f"Post {post_id} not found")
+    if post.username != username:
+        raise PermissionDenied(f"User {username} is not the author of post {post_id}")
+    db.query(UserLikedPost).filter(UserLikedPost.post_id == post_id).delete()
+    db.delete(post)
+    db.commit()
 
 
 def toggle_like(db: Session, post_id: int, username: str) -> dict:

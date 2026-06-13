@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { MagnifyingGlassIcon, FireIcon, ChatBubbleLeftRightIcon, UserPlusIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, FireIcon, ChatBubbleLeftRightIcon, UserPlusIcon, CheckIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Navbar from "@/components/layout/navbar";
 import { useAuth } from "@/context/authContext";
 import { fetchFeedPosts, fetchTrendingShows, fetchLiveChats, searchUsers } from "@/api/feed/feed";
 import type { FeedPost, TrendingShow, LiveChat, UserSearchResult } from "@/api/feed/feed.types";
-import { insertFollowUserRelationship, deleteFollowUserRelationship, fetchUser } from "@/api/social/socialNetwork";
+import { insertFollowUserRelationship, deleteFollowUserRelationship, fetchUser, fetchFollowedShows, insertFollowShowRelationship, deleteFollowShowRelationship } from "@/api/social/socialNetwork";
 import { retrieveEpisode } from "@/api/shows/episodes";
 import { simpleFetchShow } from "@/api/shows/shows";
-import { likePost } from "@/api/shows/posts";
+import { likePost, editPost, deletePost } from "@/api/shows/posts";
 
 
 function relativeTime(isoString: string): string {
@@ -31,11 +31,17 @@ function Spinner() {
   );
 }
 
-function PostCard({ post }: { post: FeedPost }) {
+function PostCard({ post, onDelete, onEdit }: { post: FeedPost; onDelete: (id: number) => void; onEdit: (id: number, newMessage: string) => void }) {
   const { username } = useAuth();
   const navigate = useNavigate();
   const [liked, setLiked] = useState(post.user_has_liked);
   const [likeCount, setLikeCount] = useState(post.likes);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(post.message);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const isOwner = username === post.username;
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -54,11 +60,39 @@ function PostCard({ post }: { post: FeedPost }) {
   };
 
   const handleCardClick = async () => {
+    if (isEditing) return;
     try {
       const episode = await retrieveEpisode(post.show_name, post.season, post.episode, post.thumbnail ?? "");
       navigate("/episode", { state: episode });
     } catch {
       // silently ignore
+    }
+  };
+
+  const handleSaveEdit = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!editText.trim() || isSaving || !username) return;
+    setIsSaving(true);
+    try {
+      const updated = await editPost(post.id, username, editText.trim());
+      onEdit(post.id, updated.message);
+      setIsEditing(false);
+    } catch {
+      // silently ignore
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isDeleting || !username) return;
+    setIsDeleting(true);
+    try {
+      await deletePost(post.id, username);
+      onDelete(post.id);
+    } catch {
+      setIsDeleting(false);
     }
   };
 
@@ -79,26 +113,77 @@ function PostCard({ post }: { post: FeedPost }) {
             {post.show_name} · S{padNum(post.season)} E{padNum(post.episode)} — {post.episode_title}
           </p>
         </div>
-        <span className="text-gray-300 text-xs font-mono flex-shrink-0">{relativeTime(post.created_at)}</span>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {isOwner && !isEditing && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setEditText(post.message); setIsEditing(true); }}
+                className="text-gray-300 hover:text-blue-400 transition-colors p-1"
+                title="Edit post"
+              >
+                <PencilSquareIcon className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="text-gray-300 hover:text-red-400 transition-colors p-1 disabled:opacity-40"
+                title="Delete post"
+              >
+                <TrashIcon className="w-3.5 h-3.5" />
+              </button>
+            </>
+          )}
+          <span className="text-gray-300 text-xs font-mono ml-1">{relativeTime(post.created_at)}</span>
+        </div>
       </div>
 
-      <div className="flex gap-3">
-        {post.thumbnail ? (
-          <img
-            src={post.thumbnail}
-            alt={post.show_name}
-            className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+      {isEditing ? (
+        <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+          <textarea
+            className="w-full bg-gray-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none resize-none focus:border-blue-400 transition-colors"
+            rows={3}
+            maxLength={300}
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            autoFocus
           />
-        ) : (
-          <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0 border border-gray-100" />
-        )}
-        <p className="text-gray-700 text-sm leading-relaxed flex-1">{post.message}</p>
-      </div>
-      {post.media_url && (
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsEditing(false); }}
+              className="text-gray-400 hover:text-gray-600 text-xs font-mono transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveEdit}
+              disabled={!editText.trim() || isSaving}
+              className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 disabled:opacity-40 text-white text-xs font-mono px-3 py-1 rounded-full transition-colors"
+            >
+              <CheckIcon className="w-3 h-3" />
+              {isSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex gap-3">
+          {post.thumbnail ? (
+            <img
+              src={post.thumbnail}
+              alt={post.show_name}
+              className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0 border border-gray-100" />
+          )}
+          <p className="text-gray-700 text-sm leading-relaxed flex-1">{post.message}</p>
+        </div>
+      )}
+
+      {post.media_url && !isEditing && (
         <img
           src={post.media_url}
           alt="post media"
-          className="w-full rounded-lg border border-gray-100"
+          className="w-full max-h-48 object-contain rounded-lg border border-gray-100"
           onClick={(e) => e.stopPropagation()}
         />
       )}
@@ -234,7 +319,45 @@ function UserSearchWidget({ currentUsername }: { currentUsername: string | null 
   );
 }
 
-function TrendingWidget({ items, onItemClick }: { items: TrendingShow[]; onItemClick: (item: TrendingShow) => void }) {
+function TrendingWidget({ items, onItemClick, currentUsername }: { items: TrendingShow[]; onItemClick: (item: TrendingShow) => void; currentUsername: string | null }) {
+  const [followedShows, setFollowedShows] = useState<Set<string>>(new Set());
+  const [userId, setUserId] = useState<number | null>(null);
+  const [followLoading, setFollowLoading] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!currentUsername) {
+      setFollowedShows(new Set());
+      setUserId(null);
+      return;
+    }
+    fetchUser(currentUsername).then(user => {
+      setUserId(user.id);
+      return fetchFollowedShows(user.id).catch(() => [] as string[]);
+    }).then(shows => {
+      setFollowedShows(new Set(shows as string[]));
+    }).catch(() => {});
+  }, [currentUsername]);
+
+  const toggleFollowShow = async (e: React.MouseEvent, showName: string) => {
+    e.stopPropagation();
+    if (!currentUsername || userId === null || followLoading.has(showName)) return;
+    setFollowLoading(prev => new Set([...prev, showName]));
+    try {
+      const show = await simpleFetchShow(showName);
+      if (followedShows.has(showName)) {
+        await deleteFollowShowRelationship(userId, show.id);
+        setFollowedShows(prev => { const next = new Set(prev); next.delete(showName); return next; });
+      } else {
+        await insertFollowShowRelationship(userId, show.id);
+        setFollowedShows(prev => new Set([...prev, showName]));
+      }
+    } catch {
+      // silently ignore
+    } finally {
+      setFollowLoading(prev => { const next = new Set(prev); next.delete(showName); return next; });
+    }
+  };
+
   return (
     <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center gap-2">
@@ -266,6 +389,19 @@ function TrendingWidget({ items, onItemClick }: { items: TrendingShow[]; onItemC
                 <p className="text-gray-400 text-xs">{item.detail}</p>
                 <span className="text-xs text-gray-500 mt-0.5 inline-block">{item.post_count} posts</span>
               </div>
+              {currentUsername && (
+                <button
+                  onClick={(e) => toggleFollowShow(e, item.show_name)}
+                  disabled={followLoading.has(item.show_name)}
+                  className={`flex-shrink-0 text-xs font-mono px-2 py-1 rounded-full border transition-colors disabled:opacity-40 ${
+                    followedShows.has(item.show_name)
+                      ? "bg-blue-50 border-blue-300 text-blue-500 hover:bg-red-50 hover:border-red-300 hover:text-red-400"
+                      : "border-gray-200 text-gray-400 hover:border-blue-300 hover:text-blue-400"
+                  }`}
+                >
+                  {followLoading.has(item.show_name) ? "..." : followedShows.has(item.show_name) ? "✓" : "+"}
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -406,7 +542,12 @@ export default function FeedPage() {
           )}
 
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard
+              key={post.id}
+              post={post}
+              onDelete={(id) => setPosts(prev => prev.filter(p => p.id !== id))}
+              onEdit={(id, newMessage) => setPosts(prev => prev.map(p => p.id === id ? { ...p, message: newMessage } : p))}
+            />
           ))}
 
           {!loading && posts.length > 0 && (
@@ -432,7 +573,7 @@ export default function FeedPage() {
         {/* ── Sidebar ── */}
         <div className="flex flex-col gap-4 order-1 lg:order-2 mb-6 lg:mb-0">
           <UserSearchWidget currentUsername={username} />
-          <TrendingWidget items={trending} onItemClick={handleTrendingClick} />
+          <TrendingWidget items={trending} onItemClick={handleTrendingClick} currentUsername={username} />
           <LiveChatsWidget chats={liveChats} onItemClick={handleLiveChatClick} />
         </div>
 

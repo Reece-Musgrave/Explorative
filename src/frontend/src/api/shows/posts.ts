@@ -35,3 +35,11 @@ export async function retrievePosts(showName: string, seasonNumber: number, epis
 export async function likePost(postId: number, username: string): Promise<{ likes: number; liked: boolean }> {
     return apiClient.post(`/posts/post/${postId}/like?username=${encodeURIComponent(username)}`);
 }
+
+export async function editPost(postId: number, username: string, message: string): Promise<Post> {
+    return apiClient.put<Post>(`/posts/post/${postId}`, { username, message });
+}
+
+export async function deletePost(postId: number, username: string): Promise<void> {
+    return apiClient.del(`/posts/post/${postId}?username=${encodeURIComponent(username)}`);
+}

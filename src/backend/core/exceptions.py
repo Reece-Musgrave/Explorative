@@ -3,3 +3,6 @@ class APIError(Exception):
 
 class NotFoundError(Exception):
     pass
+
+class PermissionDenied(Exception):
+    pass

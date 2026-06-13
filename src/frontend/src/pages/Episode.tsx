@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate} from "react-router-dom";
 
 
-import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { PhotoIcon, XMarkIcon, PencilSquareIcon, TrashIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { getOrGenerateSentiment } from "@/api/shows/aiSentiment.ts";
-import { insertPost, retrievePosts, likePost } from "@/api/shows/posts.ts";
+import { insertPost, retrievePosts, likePost, editPost, deletePost } from "@/api/shows/posts.ts";
 import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "@/api/shows/ratings.ts";
 import Navbar from "@/components/layout/navbar.tsx";
 import { useAuth } from "@/context/authContext";
@@ -13,13 +13,22 @@ import { type Episode } from "@/types/episode.ts";
 import { type Post } from "@/types/posts.ts";
 import { type IMDBRating, type RTRating } from "@/types/rating.ts";
 import { type Sentiment } from "@/types/sentiment.ts";
+import { fetchUser, fetchFollowedShows, insertFollowShowRelationship, deleteFollowShowRelationship } from "@/api/social/socialNetwork";
+import { simpleFetchShow } from "@/api/shows/shows";
 
 
 
 
-function EpisodePostCard({ post, currentUsername }: { post: Post; currentUsername: string | null }) {
+function EpisodePostCard({ post, currentUsername, onDelete }: { post: Post; currentUsername: string | null; onDelete: (id: number) => void }) {
     const [liked, setLiked] = useState(post.user_has_liked);
     const [likeCount, setLikeCount] = useState(post.likes);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editText, setEditText] = useState(post.message);
+    const [displayMessage, setDisplayMessage] = useState(post.message);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const isOwner = currentUsername === post.username;
 
     const handleLike = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -37,17 +46,90 @@ function EpisodePostCard({ post, currentUsername }: { post: Post; currentUsernam
         }
     };
 
+    const handleSaveEdit = async () => {
+        if (!editText.trim() || isSaving || !currentUsername) return;
+        setIsSaving(true);
+        try {
+            const updated = await editPost(post.id, currentUsername, editText.trim());
+            setDisplayMessage(updated.message);
+            setIsEditing(false);
+        } catch {
+            // silently ignore
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (isDeleting || !currentUsername) return;
+        setIsDeleting(true);
+        try {
+            await deletePost(post.id, currentUsername);
+            onDelete(post.id);
+        } catch {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col gap-2">
             <div className="flex items-center justify-between">
                 <span className="text-blue-500 text-xs font-mono font-semibold">{post.username}</span>
+                {isOwner && !isEditing && (
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => { setEditText(displayMessage); setIsEditing(true); }}
+                            className="text-gray-300 hover:text-blue-400 transition-colors p-1"
+                            title="Edit post"
+                        >
+                            <PencilSquareIcon className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="text-gray-300 hover:text-red-400 transition-colors p-1 disabled:opacity-40"
+                            title="Delete post"
+                        >
+                            <TrashIcon className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                )}
             </div>
-            <p className="text-gray-700 text-xs leading-relaxed">{post.message}</p>
+            {isEditing ? (
+                <div className="flex flex-col gap-2">
+                    <textarea
+                        className="w-full bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-xs text-gray-700 outline-none resize-none focus:border-blue-400 transition-colors"
+                        rows={3}
+                        maxLength={300}
+                        value={editText}
+                        onChange={e => setEditText(e.target.value)}
+                        autoFocus
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                        <button
+                            onClick={() => setIsEditing(false)}
+                            className="text-gray-400 hover:text-gray-600 text-xs font-mono transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveEdit}
+                            disabled={!editText.trim() || isSaving}
+                            className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 disabled:opacity-40 text-white text-xs font-mono px-3 py-1 rounded-full transition-colors"
+                        >
+                            <CheckIcon className="w-3 h-3" />
+                            {isSaving ? "Saving..." : "Save"}
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <p className="text-gray-700 text-xs leading-relaxed">{displayMessage}</p>
+            )}
             {post.media_url && (
                 <img
                     src={post.media_url}
                     alt="post media"
-                    className="w-full rounded-lg border border-gray-100"
+                    className="w-full max-h-48 object-contain rounded-lg border border-gray-100"
                 />
             )}
             <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
@@ -74,7 +156,7 @@ export function EpisodePage() {
     const { username } = useAuth();
     const { accessToken } = useAuth();
     const navigate = useNavigate();
-   
+
     const [numberOfPosts, setNumberOfPosts] = useState(0);
     const [noMorePosts, setNoMorePosts] = useState(false);
     const [newMessage, setNewMessage] = useState("");
@@ -84,6 +166,10 @@ export function EpisodePage() {
     const [mediaPreview, setMediaPreview] = useState<string | null>(null);
     const [mediaError, setMediaError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [isFollowingShow, setIsFollowingShow] = useState(false);
+    const [followShowLoading, setFollowShowLoading] = useState(false);
+    const [userId, setUserId] = useState<number | null>(null);
 
     const [sentimentOpen, setSentimentOpen] = useState(false);
     const [communityOpen, setCommunityOpen] = useState(false);
@@ -125,6 +211,42 @@ export function EpisodePage() {
             setChatOpen(true);
         }
     }, [diffDays]);
+
+    useEffect(() => {
+        if (!username) return;
+        (async () => {
+            try {
+                const user = await fetchUser(username);
+                setUserId(user.id);
+                let shows: string[] = [];
+                try { shows = await fetchFollowedShows(user.id); } catch { /* no followed shows */ }
+                setIsFollowingShow(shows.includes(episodeData.showName));
+            } catch { /* user not found */ }
+        })();
+    }, [username]);
+
+    const handleFollowShow = async () => {
+        if (!username || userId === null || followShowLoading) return;
+        setFollowShowLoading(true);
+        try {
+            const show = await simpleFetchShow(episodeData.showName);
+            if (isFollowingShow) {
+                await deleteFollowShowRelationship(userId, show.id);
+            } else {
+                await insertFollowShowRelationship(userId, show.id);
+            }
+            setIsFollowingShow(prev => !prev);
+        } catch {
+            // silently ignore
+        } finally {
+            setFollowShowLoading(false);
+        }
+    };
+
+    const handleDeletePost = (postId: number) => {
+        setPosts(prev => (prev ?? []).filter(p => p.id !== postId));
+        setNumberOfPosts(n => n - 1);
+    };
 
     useEffect(() => {
         retrieveIMDBRating(episodeData.showName, episodeData.seasonNumber, episodeData.episodeNumber)
@@ -267,12 +389,12 @@ export function EpisodePage() {
     };
     
     return (
-        <div className="bg-gray-50 min-h-screen flex flex-col">
+        <div className="bg-gray-50 min-h-screen lg:h-screen flex flex-col">
             <Navbar/>
-            <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr_280px] lg:gap-1 lg:flex-1 lg:h-[calc(100vh-64px)] overflow-hidden">
+            <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr_280px] lg:auto-rows-fr lg:gap-1 lg:flex-1 lg:overflow-hidden">
 
                 {/* Left Column */}
-                <div className="flex flex-col gap-4 p-6 pt-1 overflow-y-auto">
+                <div className="flex flex-col gap-4 p-6 pt-1 overflow-y-auto min-h-0">
                     <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-gray-200 shadow-sm">
                         <img className="absolute inset-0 w-full h-full object-cover" src={episodeData.showImageURL}/>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
@@ -286,6 +408,19 @@ export function EpisodePage() {
                         <p className="text-gray-900 text-sm mt-1">{episodeData.episodeAirdate}</p>
                         <span className="text-xs bg-gray-100 border border-gray-200 rounded-full px-3 py-0.5 mt-2 inline-block text-gray-500">{daysAgoLabel}</span>
                     </div>
+                    {username && (
+                        <button
+                            onClick={handleFollowShow}
+                            disabled={followShowLoading}
+                            className={`w-full py-2.5 rounded-lg border font-mono text-xs tracking-wider transition-colors disabled:opacity-50 ${
+                                isFollowingShow
+                                    ? "border-blue-400 text-blue-500 bg-blue-50 hover:bg-red-50 hover:border-red-300 hover:text-red-400"
+                                    : "border-dashed border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-400"
+                            }`}
+                        >
+                            {followShowLoading ? "..." : isFollowingShow ? "✓ Following Show" : "+ Follow Show"}
+                        </button>
+                    )}
                     <button className="w-full py-2.5 rounded-lg border border-dashed border-gray-300 text-gray-400 font-mono text-xs tracking-wider hover:border-blue-400 hover:text-blue-400 transition-colors"
                         onClick={() => navigate("/")}
                     > ↩ Search Again
@@ -293,8 +428,9 @@ export function EpisodePage() {
                 </div>
 
                 {/* Centre Column */}
-                <div className="flex flex-col gap-4 p-6 pt-1 overflow-y-auto">
-                    <div className="flex flex-row gap-3">
+                <div className="flex flex-col gap-4 p-6 pt-1 min-h-0 overflow-hidden">
+                    {/* Ratings row — fixed, never shrinks */}
+                    <div className="flex flex-row gap-3 flex-shrink-0">
                         <div className="flex flex-col gap-2 flex-1 bg-white border border-gray-200 shadow-sm rounded-xl p-4">
                             <p className="text-gray-400 text-xs font-mono tracking-widest uppercase">IMDb</p>
                             {imdbLoading ? <RatingSpinner /> : (
@@ -332,7 +468,9 @@ export function EpisodePage() {
                             )}
                         </div>
                     </div>
-                    <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
+
+                    {/* Sentiment — fixed, never shrinks */}
+                    <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden flex-shrink-0">
                         <div
                             className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                             onClick={() => setSentimentOpen(!sentimentOpen)}
@@ -368,32 +506,35 @@ export function EpisodePage() {
                                             "{sentimentData.summary}"
                                         </p>
                                     </>
-                                )}   
+                                )}
                             </div>
                         )}
                     </div>
-                    <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
+
+                    {/* Community & Media — stretches to fill remaining space when open */}
+                    <div className={`bg-white border border-gray-200 shadow-sm rounded-xl flex flex-col min-h-0 ${communityOpen ? 'flex-1' : 'flex-shrink-0'}`}>
+                        {/* Header — always fixed */}
                         <div
-                            className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors flex-shrink-0"
                             onClick={handleCommunityClick}
                         >
                             <p className="text-gray-900 font-mono text-sm">Community & Media</p>
                             <span className="text-gray-400 text-xs">{communityOpen ? "▴" : "▾"}</span>
                         </div>
+
                         {communityOpen && (
-                            <div className="px-4 pb-4 border-t border-gray-100">
+                            <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto border-t border-gray-100 px-4 py-4">
                                 {/* Post input */}
                                 {username ? (
-                                    <div className="mt-4 flex flex-col gap-2">
+                                    <div className="flex flex-col gap-2">
                                         <textarea
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-700 outline-none placeholder:text-gray-400 resize-none focus:border-blue-300 transition-colors"
                                             placeholder="Share your thoughts on this episode..."
-                                            rows={3}
+                                            rows={2}
                                             maxLength={300}
                                             value={newMessage}
                                             onChange={e => setNewMessage(e.target.value)}
                                         />
-                                        {/* Media attachment row */}
                                         <div className="flex items-center gap-2">
                                             <input
                                                 ref={fileInputRef}
@@ -438,49 +579,47 @@ export function EpisodePage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-gray-400 text-xs mt-4 font-mono text-center">
+                                    <p className="text-gray-400 text-xs font-mono text-center">
                                         Log in to leave a comment
                                     </p>
                                 )}
 
                                 {/* Posts list */}
-                                <div className="flex flex-col gap-3 mt-4">
-                                    {posts === null ? (
-                                        <RatingSpinner />
-                                    ) : posts.length === 0 && noMorePosts ? (
-                                        <p className="text-gray-400 text-xs font-mono text-center py-2">
-                                            No posts yet. Be the first!
-                                        </p>
-                                    ) : (
-                                        <>
-                                            {posts.map(post => (
-                                                <EpisodePostCard key={post.id} post={post} currentUsername={username} />
-                                            ))}
-                                            {noMorePosts ? (
-                                                <button
-                                                    className="w-full py-2 rounded-lg border border-dashed border-gray-200 text-gray-300 font-mono text-xs cursor-default"
-                                                    disabled
-                                                >
-                                                    No more posts to load
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    className="w-full py-2 rounded-lg border border-dashed border-gray-300 text-gray-400 font-mono text-xs hover:border-blue-400 hover:text-blue-400 transition-colors"
-                                                    onClick={handleGetMore}
-                                                >
-                                                    Get More
-                                                </button>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
+                                {posts === null ? (
+                                    <RatingSpinner />
+                                ) : posts.length === 0 && noMorePosts ? (
+                                    <p className="text-gray-400 text-xs font-mono text-center py-2">
+                                        No posts yet. Be the first!
+                                    </p>
+                                ) : (
+                                    <>
+                                        {posts.map(post => (
+                                            <EpisodePostCard key={post.id} post={post} currentUsername={username} onDelete={handleDeletePost} />
+                                        ))}
+                                        {noMorePosts ? (
+                                            <button
+                                                className="w-full py-2 rounded-lg border border-dashed border-gray-200 text-gray-300 font-mono text-xs cursor-default"
+                                                disabled
+                                            >
+                                                No more posts to load
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="w-full py-2 rounded-lg border border-dashed border-gray-300 text-gray-400 font-mono text-xs hover:border-blue-400 hover:text-blue-400 transition-colors"
+                                                onClick={handleGetMore}
+                                            >
+                                                Get More
+                                            </button>
+                                        )}
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Right Column - Live Chat */}
-                <div className="flex flex-col p-6 pt-1 pr-0 pb-0 overflow-hidden">
+                <div className="flex flex-col p-6 pt-1 pr-0 pb-0 overflow-hidden min-h-0">
                     <div className="flex flex-col border-l border-t border-gray-200 flex-1 overflow-hidden bg-white">
                         {chatOpen ? (
                             <>

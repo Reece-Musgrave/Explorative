@@ -80,6 +80,7 @@ frontend/
 ## Deployment
 
 - Hosted on AWS EC2 (Ubuntu, T3.small instance)
+- Media storage using S3
 - Fully containerised using Docker
 - Frontend served via Nginx reverse proxy
 - Backend exposed via FastAPI (Uvicorn)

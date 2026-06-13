@@ -6,10 +6,10 @@ from botocore.exceptions import BotoCoreError, ClientError
 import uuid
 
 from backend.core.config import settings
-from backend.core.exceptions import NotFoundError
+from backend.core.exceptions import NotFoundError, PermissionDenied
 from backend.db.session import get_db
-from backend.services.posts_service import get_posts, create_post, toggle_like
-from backend.schemas.posts import PostOutput
+from backend.services.posts_service import get_posts, create_post, toggle_like, update_post, delete_post
+from backend.schemas.posts import PostOutput, EditPostInput
 
 router = APIRouter()
 
@@ -83,6 +83,28 @@ async def insert_post(
         return post
     except IntegrityError:
         raise HTTPException(status_code=409)
+
+
+@router.put("/api/v1/posts/post/{post_id}", response_model=PostOutput)
+async def edit_post(post_id: int, body: EditPostInput, db: Session = Depends(get_db)):
+    try:
+        post = update_post(db, post_id, body.username, body.message)
+        return PostOutput.model_validate(post)
+    except NotFoundError:
+        raise HTTPException(status_code=404)
+    except PermissionDenied:
+        raise HTTPException(status_code=403)
+
+
+@router.delete("/api/v1/posts/post/{post_id}")
+async def remove_post(post_id: int, username: str, db: Session = Depends(get_db)):
+    try:
+        delete_post(db, post_id, username)
+        return {"detail": "Post deleted successfully"}
+    except NotFoundError:
+        raise HTTPException(status_code=404)
+    except PermissionDenied:
+        raise HTTPException(status_code=403)
 
 
 @router.post("/api/v1/posts/post/{post_id}/like")
