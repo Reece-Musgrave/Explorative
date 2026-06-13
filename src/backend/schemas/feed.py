@@ -15,6 +15,7 @@ class FeedPostOutput(BaseModel):
     created_at: datetime
     likes: int
     post_type: str
+    user_has_liked: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 

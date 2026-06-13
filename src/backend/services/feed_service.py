@@ -8,6 +8,7 @@ from backend.models.seasons import Seasons
 from backend.models.shows import Shows
 from backend.models.users import Users
 from backend.models.user_follow_user import UserFollowUser
+from backend.models.user_liked_post import UserLikedPost
 from backend.services.chat_manager import manager
 
 
@@ -33,6 +34,15 @@ def get_feed_posts(db: Session, username: str, limit: int = 20, offset: int = 0)
         .all()
     )
 
+    post_ids = [post.id for post, _, _, _ in rows]
+    liked_ids = {
+        row.post_id
+        for row in db.query(UserLikedPost.post_id)
+        .filter(UserLikedPost.username == username)
+        .filter(UserLikedPost.post_id.in_(post_ids))
+        .all()
+    }
+
     return [
         {
             "id": post.id,
@@ -46,6 +56,7 @@ def get_feed_posts(db: Session, username: str, limit: int = 20, offset: int = 0)
             "created_at": post.created_at,
             "likes": post.likes,
             "post_type": post.post_type,
+            "user_has_liked": post.id in liked_ids,
         }
         for post, episode, season, show in rows
     ]

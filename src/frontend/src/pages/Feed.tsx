@@ -8,6 +8,7 @@ import type { FeedPost, TrendingShow, LiveChat, UserSearchResult } from "@/api/f
 import { insertFollowUserRelationship, deleteFollowUserRelationship, fetchUser } from "@/api/social/socialNetwork";
 import { retrieveEpisode } from "@/api/shows/episodes";
 import { simpleFetchShow } from "@/api/shows/shows";
+import { likePost } from "@/api/shows/posts";
 
 
 function relativeTime(isoString: string): string {
@@ -31,10 +32,41 @@ function Spinner() {
 }
 
 function PostCard({ post }: { post: FeedPost }) {
-  const [liked, setLiked] = useState(false);
+  const { username } = useAuth();
+  const navigate = useNavigate();
+  const [liked, setLiked] = useState(post.user_has_liked);
+  const [likeCount, setLikeCount] = useState(post.likes);
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!username) return;
+    const next = !liked;
+    setLiked(next);
+    setLikeCount((c) => c + (next ? 1 : -1));
+    try {
+      const result = await likePost(post.id, username);
+      setLikeCount(result.likes);
+      setLiked(result.liked);
+    } catch {
+      setLiked(!next);
+      setLikeCount((c) => c + (next ? -1 : 1));
+    }
+  };
+
+  const handleCardClick = async () => {
+    try {
+      const episode = await retrieveEpisode(post.show_name, post.season, post.episode, post.thumbnail ?? "");
+      navigate("/episode", { state: episode });
+    } catch {
+      // silently ignore
+    }
+  };
 
   return (
-    <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col gap-3">
+    <div
+      className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 flex flex-col gap-3 cursor-pointer hover:border-blue-200 transition-colors"
+      onClick={handleCardClick}
+    >
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
           <span className="text-blue-400 text-xs font-mono font-bold">
@@ -65,18 +97,25 @@ function PostCard({ post }: { post: FeedPost }) {
 
       <div className="flex items-center gap-4 pt-1 border-t border-gray-50">
         <button
-          onClick={() => setLiked(!liked)}
-          className={`flex items-center gap-1.5 text-xs font-mono transition-colors ${
+          onClick={handleLike}
+          disabled={!username}
+          className={`flex items-center gap-1.5 text-xs font-mono transition-colors disabled:opacity-40 ${
             liked ? "text-blue-500" : "text-gray-400 hover:text-blue-400"
           }`}
         >
           <span>{liked ? "♥" : "♡"}</span>
-          <span>{post.likes + (liked ? 1 : 0)}</span>
+          <span>{likeCount}</span>
         </button>
-        <button className="text-gray-400 hover:text-gray-600 text-xs font-mono transition-colors">
+        <button
+          onClick={(e) => e.stopPropagation()}
+          className="text-gray-400 hover:text-gray-600 text-xs font-mono transition-colors"
+        >
           Reply
         </button>
-        <button className="ml-auto text-gray-300 hover:text-gray-500 text-xs font-mono transition-colors">
+        <button
+          onClick={(e) => e.stopPropagation()}
+          className="ml-auto text-gray-300 hover:text-gray-500 text-xs font-mono transition-colors"
+        >
           Share
         </button>
       </div>

@@ -5,4 +5,6 @@ export interface Post{
     message: string;
     username: string;
     postType: string;
+    likes: number;
+    user_has_liked: boolean;
 };

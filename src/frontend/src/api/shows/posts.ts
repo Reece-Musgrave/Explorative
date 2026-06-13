@@ -13,8 +13,13 @@ export async function insertPost(message: string, username: string, showName: st
     return apiClient.post<Post>(`/posts/post?${params}`);
 }
 
-export async function retrievePosts(showName: string, seasonNumber: number, episodeNumber: number, postRange: number[]): Promise<Post[]> {
+export async function retrievePosts(showName: string, seasonNumber: number, episodeNumber: number, postRange: number[], username?: string): Promise<Post[]> {
     const params = new URLSearchParams();
     postRange.forEach(n => params.append('post_range', n.toString()));
+    if (username) params.set('username', username);
     return apiClient.get<Post[]>(`/posts/post/${showName}/${seasonNumber}/${episodeNumber}?${params}`);
+}
+
+export async function likePost(postId: number, username: string): Promise<{ likes: number; liked: boolean }> {
+    return apiClient.post(`/posts/post/${postId}/like?username=${encodeURIComponent(username)}`);
 }

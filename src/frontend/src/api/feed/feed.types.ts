@@ -10,6 +10,7 @@ export interface FeedPost {
   created_at: string;
   likes: number;
   post_type: string;
+  user_has_liked: boolean;
 }
 
 export interface TrendingShow {

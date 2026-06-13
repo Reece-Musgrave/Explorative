@@ -3,7 +3,7 @@ import { useLocation, useNavigate} from "react-router-dom";
 
 
 import { getOrGenerateSentiment } from "@/api/shows/aiSentiment.ts";
-import { insertPost, retrievePosts } from "@/api/shows/posts.ts";
+import { insertPost, retrievePosts, likePost } from "@/api/shows/posts.ts";
 import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "@/api/shows/ratings.ts";
 import Navbar from "@/components/layout/navbar.tsx";
 import { useAuth } from "@/context/authContext";
@@ -15,6 +15,51 @@ import { type Sentiment } from "@/types/sentiment.ts";
 
 
 
+
+function EpisodePostCard({ post, currentUsername }: { post: Post; currentUsername: string | null }) {
+    const [liked, setLiked] = useState(post.user_has_liked);
+    const [likeCount, setLikeCount] = useState(post.likes);
+
+    const handleLike = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!currentUsername) return;
+        const next = !liked;
+        setLiked(next);
+        setLikeCount(c => c + (next ? 1 : -1));
+        try {
+            const result = await likePost(post.id, currentUsername);
+            setLikeCount(result.likes);
+            setLiked(result.liked);
+        } catch {
+            setLiked(!next);
+            setLikeCount(c => c + (next ? -1 : 1));
+        }
+    };
+
+    return (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+                <span className="text-blue-500 text-xs font-mono font-semibold">{post.username}</span>
+            </div>
+            <p className="text-gray-700 text-xs leading-relaxed">{post.message}</p>
+            <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
+                <button
+                    onClick={handleLike}
+                    disabled={!currentUsername}
+                    className={`flex items-center gap-1.5 text-xs font-mono transition-colors disabled:opacity-40 ${
+                        liked ? "text-blue-500" : "text-gray-400 hover:text-blue-400"
+                    }`}
+                >
+                    <span>{liked ? "♥" : "♡"}</span>
+                    <span>{likeCount}</span>
+                </button>
+                <button className="ml-auto text-gray-300 hover:text-gray-500 text-xs font-mono transition-colors">
+                    Share
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export function EpisodePage() {
 
@@ -106,7 +151,8 @@ export function EpisodePage() {
                     episodeData.showName,
                     episodeData.seasonNumber,
                     episodeData.episodeNumber,
-                    [0, 3]
+                    [0, 3],
+                    username ?? undefined
                 );
                 setPosts([...data]);
                 setNumberOfPosts(3);
@@ -117,14 +163,15 @@ export function EpisodePage() {
             }
         }
     };
-    
+
     const handleGetMore = async () => {
         try {
             const data = await retrievePosts(
                 episodeData.showName,
                 episodeData.seasonNumber,
                 episodeData.episodeNumber,
-                [numberOfPosts, numberOfPosts + 3]
+                [numberOfPosts, numberOfPosts + 3],
+                username ?? undefined
             );
             if (data.length === 0) {
                 setNoMorePosts(true);
@@ -336,14 +383,7 @@ export function EpisodePage() {
                                     ) : (
                                         <>
                                             {posts.map(post => (
-                                                <div key={post.id} className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-                                                    <span className="text-blue-500 text-xs font-mono font-semibold">
-                                                        {post.username}
-                                                    </span>
-                                                    <p className="text-gray-700 text-xs leading-relaxed mt-1">
-                                                        {post.message}
-                                                    </p>
-                                                </div>
+                                                <EpisodePostCard key={post.id} post={post} currentUsername={username} />
                                             ))}
                                             {noMorePosts ? (
                                                 <button
