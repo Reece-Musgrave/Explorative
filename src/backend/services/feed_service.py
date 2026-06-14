@@ -2,6 +2,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from backend.core.exceptions import NotFoundError
+from backend.models.comments import Comment
 from backend.models.episodes import Episodes
 from backend.models.posts import Posts
 from backend.models.seasons import Seasons
@@ -43,6 +44,16 @@ def get_feed_posts(db: Session, username: str, limit: int = 20, offset: int = 0)
         .all()
     }
 
+    comment_counts: dict[int, int] = {}
+    if post_ids:
+        count_rows = (
+            db.query(Comment.post_id, func.count(Comment.id).label("cnt"))
+            .filter(Comment.post_id.in_(post_ids))
+            .group_by(Comment.post_id)
+            .all()
+        )
+        comment_counts = {row.post_id: row.cnt for row in count_rows}
+
     return [
         {
             "id": post.id,
@@ -58,6 +69,7 @@ def get_feed_posts(db: Session, username: str, limit: int = 20, offset: int = 0)
             "post_type": post.post_type,
             "user_has_liked": post.id in liked_ids,
             "media_url": post.media_url,
+            "comment_count": comment_counts.get(post.id, 0),
         }
         for post, episode, season, show in rows
     ]

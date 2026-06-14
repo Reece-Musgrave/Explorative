@@ -7,4 +7,5 @@ export interface Post{
     likes: number;
     user_has_liked: boolean;
     media_url: string | null;
+    comment_count: number;
 };

@@ -10,6 +10,7 @@ class PostOutput(BaseModel):
     likes: int = 0
     user_has_liked: bool = False
     media_url: Optional[str] = None
+    comment_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

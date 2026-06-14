@@ -1,5 +1,8 @@
-from backend.core.exceptions import NotFoundError, PermissionDenied
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+
+from backend.core.exceptions import NotFoundError, PermissionDenied
+from backend.models.comments import Comment
 from backend.models.shows import Shows
 from backend.models.seasons import Seasons
 from backend.models.episodes import Episodes
@@ -48,14 +51,26 @@ def get_posts(db: Session, show_name: str, season_number: int, episode_number: i
 
     posts_page = db.query(Posts).filter(Posts.episode_id == episode.id).all()[slice_range[0]: slice_range[1]]
 
+    post_ids = [p.id for p in posts_page]
+
     liked_ids: set[int] = set()
-    if username and posts_page:
+    if username and post_ids:
         liked_ids = {
             row.post_id for row in db.query(UserLikedPost.post_id)
             .filter(UserLikedPost.username == username)
-            .filter(UserLikedPost.post_id.in_([p.id for p in posts_page]))
+            .filter(UserLikedPost.post_id.in_(post_ids))
             .all()
         }
+
+    comment_counts: dict[int, int] = {}
+    if post_ids:
+        rows = (
+            db.query(Comment.post_id, func.count(Comment.id).label("cnt"))
+            .filter(Comment.post_id.in_(post_ids))
+            .group_by(Comment.post_id)
+            .all()
+        )
+        comment_counts = {row.post_id: row.cnt for row in rows}
 
     return [
         {
@@ -67,6 +82,7 @@ def get_posts(db: Session, show_name: str, season_number: int, episode_number: i
             "likes": p.likes,
             "user_has_liked": p.id in liked_ids,
             "media_url": p.media_url,
+            "comment_count": comment_counts.get(p.id, 0),
         }
         for p in posts_page
     ]
@@ -90,6 +106,7 @@ def delete_post(db: Session, post_id: int, username: str) -> None:
         raise NotFoundError(f"Post {post_id} not found")
     if post.username != username:
         raise PermissionDenied(f"User {username} is not the author of post {post_id}")
+    db.query(Comment).filter(Comment.post_id == post_id).delete()
     db.query(UserLikedPost).filter(UserLikedPost.post_id == post_id).delete()
     db.delete(post)
     db.commit()

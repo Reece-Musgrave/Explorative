@@ -17,9 +17,9 @@ class FeedPostOutput(BaseModel):
     post_type: str
     user_has_liked: bool = False
     media_url: Optional[str] = None
+    comment_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
-
 
 class TrendingShowOutput(BaseModel):
     show_name: str
@@ -29,13 +29,11 @@ class TrendingShowOutput(BaseModel):
     season: int
     episode: int
 
-
 class LiveChatOutput(BaseModel):
     show_name: str
     episode: str
     users: int
     pulse: bool
-
 
 class UserSearchResult(BaseModel):
     username: str

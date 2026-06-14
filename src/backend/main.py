@@ -14,6 +14,7 @@ from backend.api.posts_api import router as posts_router
 from backend.api.chat_api import router as chat_router
 from backend.api.social_network_api import router as social_router
 from backend.api.feed_api import router as feed_router
+from backend.api.comments_api import router as comments_router
 
 app = FastAPI()
 
@@ -32,6 +33,7 @@ app.include_router(posts_router, tags=["posts"])
 app.include_router(chat_router, tags=["chat"])
 app.include_router(social_router, tags=["social"])
 app.include_router(feed_router, tags=["feed"])
+app.include_router(comments_router, tags=["comments"])
 
 app.add_middleware(
     CORSMiddleware,

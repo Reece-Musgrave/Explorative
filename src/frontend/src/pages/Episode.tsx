@@ -5,12 +5,14 @@ import { useLocation, useNavigate} from "react-router-dom";
 import { PhotoIcon, XMarkIcon, PencilSquareIcon, TrashIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { getOrGenerateSentiment } from "@/api/shows/aiSentiment.ts";
 import { insertPost, retrievePosts, likePost, editPost, deletePost } from "@/api/shows/posts.ts";
+import { fetchComments, createComment, editComment, deleteComment } from "@/api/shows/comments.ts";
 import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "@/api/shows/ratings.ts";
 import Navbar from "@/components/layout/navbar.tsx";
 import { useAuth } from "@/context/authContext";
 import { useChat } from "@/hooks/useChat";
 import { type Episode } from "@/types/episode.ts";
 import { type Post } from "@/types/posts.ts";
+import { type Comment } from "@/types/comments.ts";
 import { type IMDBRating, type RTRating } from "@/types/rating.ts";
 import { type Sentiment } from "@/types/sentiment.ts";
 import { fetchUser, fetchFollowedShows, insertFollowShowRelationship, deleteFollowShowRelationship } from "@/api/social/socialNetwork";
@@ -27,6 +29,16 @@ function EpisodePostCard({ post, currentUsername, onDelete }: { post: Post; curr
     const [displayMessage, setDisplayMessage] = useState(post.message);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    const [commentCount, setCommentCount] = useState(post.comment_count);
+    const [showComments, setShowComments] = useState(false);
+    const [comments, setComments] = useState<Comment[] | null>(null);
+    const [commentLoading, setCommentLoading] = useState(false);
+    const [newComment, setNewComment] = useState("");
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+    const [editingCommentText, setEditingCommentText] = useState("");
+    const [isSavingComment, setIsSavingComment] = useState(false);
 
     const isOwner = currentUsername === post.username;
 
@@ -68,6 +80,62 @@ function EpisodePostCard({ post, currentUsername, onDelete }: { post: Post; curr
             onDelete(post.id);
         } catch {
             setIsDeleting(false);
+        }
+    };
+
+    const handleToggleComments = async () => {
+        const next = !showComments;
+        setShowComments(next);
+        if (next && comments === null) {
+            setCommentLoading(true);
+            try {
+                const data = await fetchComments(post.id);
+                setComments(data);
+            } catch {
+                setComments([]);
+            } finally {
+                setCommentLoading(false);
+            }
+        }
+    };
+
+    const handleSubmitComment = async () => {
+        if (!newComment.trim() || !currentUsername || isSubmittingComment) return;
+        setIsSubmittingComment(true);
+        try {
+            const comment = await createComment(post.id, currentUsername, newComment.trim());
+            setComments(prev => [...(prev ?? []), comment]);
+            setCommentCount(c => c + 1);
+            setNewComment("");
+        } catch {
+            // silently ignore
+        } finally {
+            setIsSubmittingComment(false);
+        }
+    };
+
+    const handleSaveComment = async () => {
+        if (!editingCommentText.trim() || !currentUsername || isSavingComment || editingCommentId === null) return;
+        setIsSavingComment(true);
+        try {
+            const updated = await editComment(post.id, editingCommentId, currentUsername, editingCommentText.trim());
+            setComments(prev => (prev ?? []).map(c => c.id === editingCommentId ? updated : c));
+            setEditingCommentId(null);
+        } catch {
+            // silently ignore
+        } finally {
+            setIsSavingComment(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId: number) => {
+        if (!currentUsername) return;
+        try {
+            await deleteComment(post.id, commentId, currentUsername);
+            setComments(prev => (prev ?? []).filter(c => c.id !== commentId));
+            setCommentCount(c => c - 1);
+        } catch {
+            // silently ignore
         }
     };
 
@@ -143,10 +211,107 @@ function EpisodePostCard({ post, currentUsername, onDelete }: { post: Post; curr
                     <span>{liked ? "♥" : "♡"}</span>
                     <span>{likeCount}</span>
                 </button>
+                <button
+                    onClick={handleToggleComments}
+                    className="flex items-center gap-1.5 text-xs font-mono text-gray-400 hover:text-blue-400 transition-colors"
+                >
+                    <span>💬</span>
+                    <span>
+                        {commentCount > 0
+                            ? `${commentCount} · ${showComments ? "Hide" : "Show"}`
+                            : showComments ? "Hide" : "Comment"}
+                    </span>
+                </button>
                 <button className="ml-auto text-gray-300 hover:text-gray-500 text-xs font-mono transition-colors">
                     Share
                 </button>
             </div>
+
+            {showComments && (
+                <div className="border-t border-gray-100 pt-2 flex flex-col gap-2">
+                    {currentUsername ? (
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newComment}
+                                onChange={e => setNewComment(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && handleSubmitComment()}
+                                placeholder="Add a comment..."
+                                maxLength={300}
+                                className="flex-1 bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-700 outline-none focus:border-blue-300 transition-colors"
+                            />
+                            <button
+                                onClick={handleSubmitComment}
+                                disabled={!newComment.trim() || isSubmittingComment}
+                                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 text-white text-xs font-mono px-3 py-1 rounded-full transition-colors"
+                            >
+                                {isSubmittingComment ? "..." : "Post"}
+                            </button>
+                        </div>
+                    ) : (
+                        <p className="text-gray-400 text-xs font-mono text-center">Log in to comment</p>
+                    )}
+                    {commentLoading && (
+                        <p className="text-gray-400 text-xs font-mono text-center py-1">Loading...</p>
+                    )}
+                    {comments && comments.length === 0 && !commentLoading && (
+                        <p className="text-gray-400 text-xs font-mono text-center py-1">No comments yet</p>
+                    )}
+                    {comments && comments.map(c => (
+                        <div key={c.id} className="flex items-start gap-2">
+                            {editingCommentId === c.id ? (
+                                <>
+                                    <input
+                                        type="text"
+                                        value={editingCommentText}
+                                        onChange={e => setEditingCommentText(e.target.value)}
+                                        onKeyDown={e => { if (e.key === "Enter") handleSaveComment(); if (e.key === "Escape") setEditingCommentId(null); }}
+                                        maxLength={300}
+                                        autoFocus
+                                        className="flex-1 bg-white border border-blue-200 rounded px-2 py-0.5 text-xs text-gray-700 outline-none focus:border-blue-400 transition-colors"
+                                    />
+                                    <button
+                                        onClick={handleSaveComment}
+                                        disabled={!editingCommentText.trim() || isSavingComment}
+                                        className="text-blue-500 hover:text-blue-600 disabled:opacity-40 text-xs font-mono transition-colors flex-shrink-0"
+                                    >
+                                        {isSavingComment ? "..." : "Save"}
+                                    </button>
+                                    <button
+                                        onClick={() => setEditingCommentId(null)}
+                                        className="text-gray-400 hover:text-gray-600 text-xs font-mono transition-colors flex-shrink-0"
+                                    >
+                                        Cancel
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="text-blue-500 text-xs font-mono font-semibold flex-shrink-0">{c.username}</span>
+                                    <span className="text-gray-600 text-xs flex-1 leading-relaxed">{c.message}</span>
+                                    {currentUsername === c.username && (
+                                        <div className="flex items-center gap-1 flex-shrink-0">
+                                            <button
+                                                onClick={() => { setEditingCommentId(c.id); setEditingCommentText(c.message); }}
+                                                className="text-gray-300 hover:text-blue-400 transition-colors p-0.5"
+                                                title="Edit comment"
+                                            >
+                                                <PencilSquareIcon className="w-3 h-3" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteComment(c.id)}
+                                                className="text-gray-300 hover:text-red-400 transition-colors p-0.5"
+                                                title="Delete comment"
+                                            >
+                                                <TrashIcon className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

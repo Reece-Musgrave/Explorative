@@ -8,3 +8,4 @@ from .chat import ChatMessage
 from .user_follow_show import UserFollowShow
 from .user_follow_user import UserFollowUser
 from .user_liked_post import UserLikedPost
+from .comments import Comment
