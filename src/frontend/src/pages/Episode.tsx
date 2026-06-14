@@ -10,6 +10,7 @@ import { retrieveIMDBRating, retrieveRTRating, retrieveSerializdRating } from "@
 import Navbar from "@/components/layout/navbar.tsx";
 import { useAuth } from "@/context/authContext";
 import { useChat } from "@/hooks/useChat";
+import { type ReplyTo } from "@/types/chat";
 import { type Episode } from "@/types/episode.ts";
 import { type Post } from "@/types/posts.ts";
 import { type Comment } from "@/types/comments.ts";
@@ -532,15 +533,19 @@ export function EpisodePage() {
         }
     };
 
-    const { messages, viewerCount, sendMessage, error, connected } = useChat({
+    const { messages, viewerCount, sendMessage, sendReaction, error, connected } = useChat({
         showName: episodeData.showName,
         seasonNumber: episodeData.seasonNumber,
         episodeNumber: episodeData.episodeNumber,
         token: accessToken,
+        username,
         enabled: chatOpen,
     });
     const [chatInput, setChatInput] = useState("");
+    const [replyTo, setReplyTo] = useState<ReplyTo | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const REACTION_EMOJIS = ["👍", "😂", "❤️", "😮", "😢"] as const;
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -549,7 +554,8 @@ export function EpisodePage() {
     const handleSend = () => {
         const text = chatInput.trim();
         if (!text) return;
-        sendMessage(text);
+        sendMessage(text, replyTo?.id ?? null);
+        setReplyTo(null);
         setChatInput("");
     };
     
@@ -812,15 +818,79 @@ export function EpisodePage() {
                                 {/* Messages */}
                                 <div className="flex flex-col gap-3 p-4 overflow-y-auto flex-1 min-h-0">
                                     {messages.map((msg, i) => (
-                                        <div key={msg.id ?? i} className="flex flex-col gap-1">
-                                            <span className="text-gray-400 text-xs font-mono">{msg.username}</span>
+                                        <div key={msg.id ?? i} className="flex flex-col gap-1 group">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-400 text-xs font-mono">{msg.username}</span>
+                                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {REACTION_EMOJIS.map(emoji => (
+                                                        <button
+                                                            key={emoji}
+                                                            onClick={() => username && sendReaction(msg.id, emoji)}
+                                                            className={`text-sm leading-none px-1 py-0.5 rounded hover:bg-gray-100 transition-colors ${msg.user_reactions?.includes(emoji) ? "bg-blue-50" : ""}`}
+                                                            title={username ? undefined : "Log in to react"}
+                                                        >
+                                                            {emoji}
+                                                        </button>
+                                                    ))}
+                                                    <button
+                                                        onClick={() => setReplyTo({ id: msg.id, username: msg.username, message: msg.message })}
+                                                        className="ml-0.5 text-gray-400 hover:text-gray-600 transition-colors p-0.5 rounded hover:bg-gray-100"
+                                                        title="Reply"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                            <polyline points="9 17 4 12 9 7" />
+                                                            <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
                                             <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2 text-xs text-gray-700 max-w-[85%]">
+                                                {msg.reply_to_id && (
+                                                    <div className="mb-2 px-2 py-1 bg-gray-50 border-l-2 border-blue-300 rounded-sm">
+                                                        <p className="text-blue-400 font-mono text-xs">{msg.reply_to_username}</p>
+                                                        <p className="text-gray-400 text-xs truncate">{msg.reply_to_message}</p>
+                                                    </div>
+                                                )}
                                                 {msg.message}
                                             </div>
+                                            {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                                                <div className="flex flex-wrap gap-1 max-w-[85%]">
+                                                    {Object.entries(msg.reactions).map(([emoji, count]) => (
+                                                        <button
+                                                            key={emoji}
+                                                            onClick={() => username && sendReaction(msg.id, emoji)}
+                                                            className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors ${
+                                                                msg.user_reactions?.includes(emoji)
+                                                                    ? "bg-blue-50 border-blue-200 text-blue-600"
+                                                                    : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                                                            }`}
+                                                        >
+                                                            <span>{emoji}</span>
+                                                            <span className="font-mono">{count}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                     <div ref={messagesEndRef} />
                                 </div>
+
+                                {/* Reply preview */}
+                                {replyTo && (
+                                    <div className="mx-4 mb-0 px-3 py-2 bg-blue-50 border-t border-x border-blue-100 rounded-t-lg flex items-start gap-2 flex-shrink-0">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-mono text-blue-500">Replying to {replyTo.username}</p>
+                                            <p className="text-xs text-gray-500 truncate">{replyTo.message}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setReplyTo(null)}
+                                            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 text-base leading-none"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                )}
 
                                 {/* Input — or login prompt */}
                                 <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
