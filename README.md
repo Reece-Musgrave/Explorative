@@ -1,5 +1,3 @@
-## 🎬 REYAPP
-One-stop spoiler-free TV engagement platform · Full-stack distributed web application with AI-driven sentiment analysis
 
 <p align="center">
   <a href="#overview"><strong>Overview</strong></a> ·
