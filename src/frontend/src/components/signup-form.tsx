@@ -7,9 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
@@ -26,28 +28,33 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<"div">) {
 
-  const { login } = useAuth(); 
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignupClick = async (e: React.FormEvent<HTMLFormElement>) => {
-          e.preventDefault();
-          try {
-            if (password == passwordConf){
-              const username = fullName;
-              const data = await register({ username, email, fullName: fullName, password });
-              const signin = await loginUser({ username, password });
-                    login(signin.accessToken); 
-                    navigate("/"); 
-            }
-          } catch (err) {
-            console.error(err);
-          }
-  };
-  
   const [password, setPassword] = useState("");
   const [passwordConf, setPasswordConf] = useState("");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
+
+  const handleSignupClick = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    if (password !== passwordConf) {
+      setPasswordMismatch(true);
+      return;
+    }
+    try {
+      const username = fullName;
+      await register({ username, email, fullName, password });
+      const signin = await loginUser({ username, password });
+      login(signin.accessToken);
+      navigate("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+    }
+  };
   
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -61,16 +68,20 @@ export function SignupForm({
         <CardContent>
           <form onSubmit={handleSignupClick}>
             <FieldGroup>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <Field>
                 <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                <Input 
-                  id="name" 
-                  type="text" 
-                  placeholder="John Doe" 
-                  required 
-                  value = {fullName}
-                  onChange={(e) => 
-                    setFullName(e.target.value)}/>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)} />
               </Field>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -79,7 +90,7 @@ export function SignupForm({
                   type="email"
                   placeholder="m@example.com"
                   required
-                  value = {email}
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </Field>
@@ -87,29 +98,32 @@ export function SignupForm({
                 <Field className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      required 
-                      value = {password}
-                      onChange={(e) => setPassword(e.target.value)}/>
+                    <Input
+                      id="password"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setPasswordMismatch(false); }} />
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="confirm-password">
                       Confirm Password
                     </FieldLabel>
-                    <Input 
-                      id="confirm-password" 
-                      type="password" 
-                      required 
-                      value = {passwordConf}
-                      onChange={(e) => setPasswordConf(e.target.value)}
-                  />
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      required
+                      value={passwordConf}
+                      onChange={(e) => { setPasswordConf(e.target.value); setPasswordMismatch(false); }}
+                    />
                   </Field>
                 </Field>
                 <FieldDescription>
                   Must be at least 8 characters long.
                 </FieldDescription>
+                {passwordMismatch && (
+                  <FieldError>Passwords do not match.</FieldError>
+                )}
               </Field>
               <Field>
                 <Button type="submit">Create Account</Button>

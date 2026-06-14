@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Field,
   FieldDescription,
@@ -22,20 +23,22 @@ import { useAuth } from "../context/authContext";
 
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
-  const { login } = useAuth(); 
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleLoginClick = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
     try {
       const data = await loginUser({ username, password });
-      login(data.accessToken); 
-      navigate("/"); 
+      login(data.accessToken);
+      navigate("/");
     } catch (err) {
-      console.error(err);
+      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
     }
   };
 
@@ -48,6 +51,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
         <CardContent>
           <form onSubmit={handleLoginClick}>
             <FieldGroup>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <Field>
                 <FieldLabel htmlFor="username">Username</FieldLabel>
                 <Input
@@ -55,7 +63,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                   type="text"
                   required
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => { setUsername(e.target.value); setError(null); }}
                 />
               </Field>
               <Field>
@@ -73,7 +81,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setError(null); }}
                 />
               </Field>
               <Field>
