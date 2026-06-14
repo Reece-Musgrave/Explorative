@@ -1,13 +1,16 @@
-🎬 REYAPP 
+## 🎬 REYAPP 
 One-stop spoiler-free TV engagement platform
 Full-stack distributed web application with AI-driven sentiment analysis, built for aggregating and enhancing cross-platform TV show discussions. 
 
-🚀 Overview
+### 🚀 Overview
 This project is a WIP full-stack platform designed to provide users with a unified, spoiler-free experience for engaging with TV shows and episodes.
 It aggregates third-party ratings, reviews, and metadata, while enabling users to create episode-based discussions and interact with AI-generated sentiment summaries.
 The system is built using a production-style 3-tier architecture and deployed on AWS using Docker containerisation.
 
-## 🏗️ Architecture
+### 📽️ Demo
+https://github.com/user-attachments/assets/c6e1d4ff-c21b-4a74-a7fd-14f078d2610c
+
+### 🏗️ Architecture
 
 This project follows a 3-tier architecture deployed on AWS EC2 using Docker containers:
 
@@ -49,7 +52,6 @@ Each service runs in an isolated Docker container and communicates over an inter
 - Expanded profile features and feed page
 - Fuzzy Search
 - Testing Suite
-
 
 ## 🌍 Live version of web app
 "https://sandbox.reecemus.com"
